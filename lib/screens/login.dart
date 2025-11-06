@@ -70,8 +70,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _mobileController,
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
+                  cursorColor: const Color(0xFF0052CC),
+                  style: GoogleFonts.montserrat(
+                    color: Colors.black87,
+                    fontSize: 16,
+                  ),
                   decoration: InputDecoration(
                     labelText: 'Mobile Number',
+                    labelStyle: GoogleFonts.montserrat(
+                      color: const Color(0xFF0052CC),
+                      fontSize: 16,
+                    ),
                     prefixIcon: const Icon(Icons.phone_android_outlined, color: Color(0xFF0052CC)),
                     filled: true,
                     fillColor: Colors.white,

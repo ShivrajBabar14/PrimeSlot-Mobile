@@ -101,6 +101,11 @@ class _OtpScreenState extends State<OtpScreen> {
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
                       maxLength: 1,
+                      cursorColor: const Color(0xFF0052CC),
+                      style: GoogleFonts.montserrat(
+                        color: Colors.black87,
+                        fontSize: 16,
+                      ),
                       decoration: InputDecoration(
                         counterText: '',
                         filled: true,

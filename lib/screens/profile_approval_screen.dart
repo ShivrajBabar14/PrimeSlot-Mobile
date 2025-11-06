@@ -33,6 +33,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
           style: GoogleFonts.montserrat(color: Colors.white),
         ),
         backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
       ),
     );
     Navigator.pushReplacement(

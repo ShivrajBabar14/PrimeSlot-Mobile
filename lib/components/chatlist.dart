@@ -9,7 +9,7 @@ class ChatList extends StatefulWidget {
 }
 
 class _ChatListState extends State<ChatList> {
-  // Dummy data for the chat list
+  // Dummy chat data
   final List<Map<String, dynamic>> _chatData = [
     {
       'name': 'John Doe',
@@ -57,85 +57,110 @@ class _ChatListState extends State<ChatList> {
         final chat = _chatData[index];
         final hasNotification = chat['notificationCount'] > 0;
 
-        return InkWell(
-          onTap: () {
-            // TODO: Handle chat tap to navigate to the chat screen
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundImage: NetworkImage(chat['avatarUrl']),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        chat['name'],
-                        style: GoogleFonts.montserrat(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        chat['lastMessage'],
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.montserrat(
-                          color: hasNotification ? Colors.black.withOpacity(0.75) : Colors.grey[600],
-                          fontWeight: hasNotification ? FontWeight.w500 : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Column(
+          children: [
+            InkWell(
+              onTap: () {
+                // TODO: Navigate to chat details
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Row(
                   children: [
-                    Text(
-                      chat['time'],
-                      style: GoogleFonts.montserrat(
-                        fontSize: 12,
-                        color: hasNotification ? const Color(0xFF0052CC) : Colors.grey[500],
-                        fontWeight: hasNotification ? FontWeight.bold : FontWeight.normal,
-                      ),
+                    /// Avatar
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundImage: NetworkImage(chat['avatarUrl']),
                     ),
-                    const SizedBox(height: 8),
-                    if (hasNotification)
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF0052CC),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            chat['notificationCount'].toString(),
+                    const SizedBox(width: 12),
+
+                    /// Chat Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            chat['name'],
                             style: GoogleFonts.montserrat(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: Colors.black87,
                             ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            chat['lastMessage'],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.montserrat(
+                              color: hasNotification
+                                  ? Colors.black.withOpacity(0.75)
+                                  : Colors.grey[600],
+                              fontWeight: hasNotification
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    /// Time + Notification
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          chat['time'],
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            color: hasNotification
+                                ? const Color(0xFF0052CC)
+                                : Colors.grey[500],
+                            fontWeight: hasNotification
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
                         ),
-                      )
-                    else
-                      // Placeholder to maintain alignment
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 8),
+                        if (hasNotification)
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF0052CC),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                chat['notificationCount'].toString(),
+                                style: GoogleFonts.montserrat(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(height: 24),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
+
+            /// 🔹 Divider below every chat (including last)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Divider(
+                color: Colors.grey.shade300,
+                thickness: 0.9,
+                height: 0,
+              ),
+            ),
+          ],
         );
       },
     );

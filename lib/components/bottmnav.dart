@@ -69,7 +69,9 @@ class _BottomNavState extends State<BottomNav> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.grey[100],
-      drawer: Sidebar(),
+      drawer: Sidebar(
+        onProfileTap: () => setState(() => _selectedIndex = 3),
+      ),
       body: IndexedStack(index: _selectedIndex, children: _pages),
 
       // Floating QR button (center)

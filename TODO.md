@@ -1,3 +1,3 @@
-- [ ] Remove _showScanner variable and related logic in bottmnav.dart
-- [ ] Remove the Stack children for scanner overlay in bottmnav.dart
-- [ ] Change the floatingActionButton's onPressed to navigate to ScanQR screen
+- [ ] Modify Sidebar class to accept an optional onProfileTap callback
+- [ ] Update BottomNav to pass the callback to Sidebar for setting profile tab active
+- [ ] Test the navigation to ensure bottom nav is visible and profile tab is active

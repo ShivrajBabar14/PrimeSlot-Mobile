@@ -22,13 +22,6 @@ class _BottomNavState extends State<BottomNav> {
     Profile(), // 3 - Profile
   ];
 
-  void _openScanner() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => ScanQR()),
-    );
-  }
-
   Widget _buildTab({
     required IconData icon,
     required int index,
@@ -74,7 +67,7 @@ class _BottomNavState extends State<BottomNav> {
         ),
         child: IconButton(
           icon: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 30),
-          onPressed: _openScanner,
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScanQR())),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

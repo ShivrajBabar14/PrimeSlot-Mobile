@@ -80,6 +80,10 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
         backgroundColor: const Color(0xFF0052CC),
         elevation: 0,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           "Confirm Your Profile",
           style: GoogleFonts.montserrat(
@@ -198,6 +202,11 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
               TextField(
                 controller: _messageController,
                 maxLines: 4,
+                cursorColor: const Color(0xFF0052CC),
+                style: GoogleFonts.montserrat(
+                  color: Colors.black87,
+                  fontSize: 16,
+                ),
                 decoration: InputDecoration(
                   hintText: "Type your message here...",
                   hintStyle: GoogleFonts.montserrat(color: Colors.grey[500]),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../components/sidebar.dart';
+// import '../components/sidebar.dart';
+import '../components/dashboardappo.dart';
 
 class Dashboard extends StatelessWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -21,9 +22,7 @@ class Dashboard extends StatelessWidget {
         ),
         title: Text('Dashboard', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
-      body: Center(
-        child: Text('Dashboard Page'),
-      ),
+      body: const DashboardMeetings(),
     );
   }
 }

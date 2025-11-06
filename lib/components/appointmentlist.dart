@@ -17,39 +17,45 @@ class AppointmentList extends StatefulWidget {
 
 class _AppointmentListState extends State<AppointmentList> {
   late List<Map<String, dynamic>> appointments;
-  bool isLoading = false; // no API — so it’s always false
+  bool isLoading = false; // Using dummy data, so no API loading
 
   @override
   void initState() {
     super.initState();
 
-    // Dummy appointment data
+    // 🗓️ Dummy appointment data with title and location
     appointments = [
       {
+        'title': 'Consultation Meeting',
         'firstName': 'John',
         'lastName': 'Doe',
         'appointmentDate': '2025-11-06',
         'appointmentTime': '10:00 AM - 10:30 AM',
         'phoneNumber': '+91 9876543210',
         'email': 'john.doe@example.com',
+        'location': 'Zoom Call',
         'duration': 30,
       },
       {
+        'title': 'Follow-up Discussion',
         'firstName': 'Emma',
         'lastName': 'Watson',
         'appointmentDate': '2025-11-06',
         'appointmentTime': '11:00 AM - 11:45 AM',
         'phoneNumber': '+91 9822334455',
         'email': 'emma.watson@example.com',
+        'location': 'Google Meet',
         'duration': 45,
       },
       {
+        'title': 'Health Check Consultation',
         'firstName': 'Amit',
         'lastName': 'Sharma',
         'appointmentDate': '2025-11-07',
         'appointmentTime': '02:00 PM - 02:30 PM',
         'phoneNumber': '+91 9876543211',
         'email': 'amit.sharma@example.com',
+        'location': 'Clinic Room 2A',
         'duration': 30,
       },
     ];
@@ -118,16 +124,19 @@ class _AppointmentListState extends State<AppointmentList> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// 🔹 Name and Time Row
+                      /// 🔹 Title & Time
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '${appointment['firstName']} ${appointment['lastName']}',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87,
+                          Expanded(
+                            child: Text(
+                              appointment['title'],
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
                           Text(
@@ -142,17 +151,41 @@ class _AppointmentListState extends State<AppointmentList> {
                       ),
                       const SizedBox(height: 4),
 
-                      /// 🔹 Contact Details
-                      // Text(
-                      //   appointment['email'],
-                      //   style: GoogleFonts.montserrat(
-                      //     fontSize: 12,
-                      //     color: Colors.grey[600],
-                      //   ),
-                      // ),
+                      /// 🔹 Client Name
+                      Text(
+                        '${appointment['firstName']} ${appointment['lastName']}',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+
+                      /// 🔹 Location
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 16,
+                            color: Color(0xFF0052CC),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              appointment['location'],
+                              style: GoogleFonts.montserrat(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 10),
 
-                      /// 🔹 Action Buttons and Duration
+                      /// 🔹 Action Buttons + Duration
                       Row(
                         children: [
                           _actionButton(Icons.call, "Call"),

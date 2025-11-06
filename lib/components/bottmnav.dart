@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../screens/dashboard.dart';
 import '../screens/appointment.dart';
 import '../screens/message.dart';
@@ -23,7 +24,7 @@ class _BottomNavState extends State<BottomNav> {
   ];
 
   Widget _buildTab({
-    required IconData icon,
+    required String assetPath,
     required int index,
   }) {
     final bool selected = _selectedIndex == index;
@@ -35,10 +36,14 @@ class _BottomNavState extends State<BottomNav> {
       onTap: () => setState(() => _selectedIndex = index),
       child: Padding(
         padding: const EdgeInsets.only(top: 5),
-        child: Icon(
-          icon,
-          size: 26,
-          color: selected ? active : inactive,
+        child: SvgPicture.asset(
+          assetPath,
+          width: 26,
+          height: 26,
+          colorFilter: ColorFilter.mode(
+            selected ? active : inactive,
+            BlendMode.srcIn,
+          ),
         ),
       ),
     );
@@ -86,11 +91,11 @@ class _BottomNavState extends State<BottomNav> {
               // Left 2 tabs
               Transform.translate(
                 offset: const Offset(0, -5),
-                child: _buildTab(icon: Icons.home_rounded, index: 0),
+                child: _buildTab(assetPath: 'assets/home.svg', index: 0),
               ),
               Transform.translate(
                 offset: const Offset(0, -5),
-                child: _buildTab(icon: Icons.event_note_rounded, index: 1),
+                child: _buildTab(assetPath: 'assets/Appointment.svg', index: 1),
               ),
 
               // Space for QR FAB
@@ -99,11 +104,11 @@ class _BottomNavState extends State<BottomNav> {
               // Right 2 tabs
               Transform.translate(
                 offset: const Offset(0, -5),
-                child: _buildTab(icon: Icons.message_rounded, index: 2),
+                child: _buildTab(assetPath: 'assets/message.svg', index: 2),
               ),
               Transform.translate(
                 offset: const Offset(0, -5),
-                child: _buildTab(icon: Icons.person_rounded, index: 3),
+                child: _buildTab(assetPath: 'assets/people.svg', index: 3),
               ),
             ],
           ),

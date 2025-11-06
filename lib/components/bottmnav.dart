@@ -34,17 +34,30 @@ class _BottomNavState extends State<BottomNav> {
     return InkWell(
       borderRadius: BorderRadius.circular(50),
       onTap: () => setState(() => _selectedIndex = index),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 5),
-        child: SvgPicture.asset(
-          assetPath,
-          width: 26,
-          height: 26,
-          colorFilter: ColorFilter.mode(
-            selected ? active : inactive,
-            BlendMode.srcIn,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            assetPath,
+            width: 26,
+            height: 26,
+            colorFilter: ColorFilter.mode(
+              selected ? active : inactive,
+              BlendMode.srcIn,
+            ),
           ),
-        ),
+          const SizedBox(height: 4),
+          // Active indicator dot
+          Container(
+            height: 5,
+            width: 5,
+            decoration: BoxDecoration(
+              color: selected ? active : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -89,27 +102,15 @@ class _BottomNavState extends State<BottomNav> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               // Left 2 tabs
-              Transform.translate(
-                offset: const Offset(0, -5),
-                child: _buildTab(assetPath: 'assets/home.svg', index: 0),
-              ),
-              Transform.translate(
-                offset: const Offset(0, -5),
-                child: _buildTab(assetPath: 'assets/Appointment.svg', index: 1),
-              ),
+              _buildTab(assetPath: 'assets/home.svg', index: 0),
+              _buildTab(assetPath: 'assets/Appointment.svg', index: 1),
 
               // Space for QR FAB
               const SizedBox(width: 48),
 
               // Right 2 tabs
-              Transform.translate(
-                offset: const Offset(0, -5),
-                child: _buildTab(assetPath: 'assets/message.svg', index: 2),
-              ),
-              Transform.translate(
-                offset: const Offset(0, -5),
-                child: _buildTab(assetPath: 'assets/people.svg', index: 3),
-              ),
+              _buildTab(assetPath: 'assets/message.svg', index: 2),
+              _buildTab(assetPath: 'assets/people.svg', index: 3),
             ],
           ),
         ),

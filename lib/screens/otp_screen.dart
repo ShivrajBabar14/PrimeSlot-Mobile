@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../components/bottmnav.dart';
+import 'profile_approval_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String mobileNumber;
@@ -42,10 +42,10 @@ class _OtpScreenState extends State<OtpScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      // Navigate to BottomNav with dashboard selected
+      // Navigate to ProfileApprovalScreen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const BottomNav()),
+        MaterialPageRoute(builder: (_) => const ProfileApprovalScreen()),
       );
     });
   }

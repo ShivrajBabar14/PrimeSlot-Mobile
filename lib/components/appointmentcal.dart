@@ -78,7 +78,7 @@ class _AppointmentCalendarState extends State<AppointmentCalendar> {
               decoration: BoxDecoration(
                 gradient: isSelected
                     ? const LinearGradient(
-                        colors: [Color(0xFF2E94EE), Color.fromARGB(255, 143, 197, 245)],
+                        colors: [Color(0xFF0052CC), Color.fromARGB(255, 143, 197, 245)],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       )

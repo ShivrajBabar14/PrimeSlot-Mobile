@@ -58,12 +58,21 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
 
   @override
   Widget build(BuildContext context) {
+    // Decide container height dynamically
+    double cardHeight = 110; // average height per meeting card
+    double totalHeight = (meetings.length * cardHeight) + 90; // +title + padding
+    double maxHeight = 450; // max scrollable area height
+
+    // If more than 3 meetings, limit height; else, auto-fit
+    double containerHeight =
+        totalHeight > maxHeight ? maxHeight : totalHeight.clamp(220, maxHeight);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(16.0),
-      constraints: const BoxConstraints(
-        minHeight: 200,
-        maxHeight: 475, // ✅ fixed height for dashboard consistency
+      constraints: BoxConstraints(
+        minHeight: 180, // Minimum height
+        maxHeight: containerHeight, // Dynamic based on meeting count
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -92,7 +101,6 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
           ),
           const SizedBox(height: 16),
 
-          /// 🔹 Meeting list or empty message
           Expanded(
             child: meetings.isEmpty
                 ? const Center(
@@ -104,115 +112,118 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
                       ),
                     ),
                   )
-                : Scrollbar(
-                    thumbVisibility: true,
-                    radius: const Radius.circular(8),
-                    thickness: 4,
-                    child: ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: meetings.length,
-                      itemBuilder: (context, index) {
-                        final meeting = meetings[index];
-                        final startTime =
-                            meeting['time'].toString().split('-').first.trim();
+                : ListView.builder(
+                    physics: meetings.length > 3
+                        ? const BouncingScrollPhysics()
+                        : const NeverScrollableScrollPhysics(),
+                    itemCount: meetings.length,
+                    itemBuilder: (context, index) {
+                      final meeting = meetings[index];
+                      final startTime =
+                          meeting['time'].toString().split('-').first.trim();
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              /// 🔹 Meeting title & time
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      meeting['title'],
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    startTime,
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey.shade200),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// 🔹 Meeting title & time
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    meeting['title'],
+                                    overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.montserrat(
-                                      fontSize: 12,
-                                      color: Colors.grey[700],
-                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
                                     ),
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-
-                              /// 🔹 Client Name
-                              Text(
-                                meeting['clientName'],
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[700],
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-
-                              /// 🔹 Location
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.location_on_outlined,
-                                    size: 16,
-                                    color: Color(0xFF0052CC),
+                                Text(
+                                  startTime,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      meeting['location'],
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
 
-                              /// 🔹 Contact row (Call / Mail + Duration)
-                              Row(
-                                children: [
-                                  _actionButton(Icons.call, "Call"),
-                                  const SizedBox(width: 12),
-                                  _actionButton(Icons.email_outlined, "Mail"),
-                                  const Spacer(),
-                                  Text(
-                                    '${meeting['duration']} min',
+                            /// 🔹 Client Name
+                            Text(
+                              meeting['clientName'],
+                              style: GoogleFonts.montserrat(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+
+                            /// 🔹 Location
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 16,
+                                  color: Color(0xFF0052CC),
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    meeting['location'],
                                     style: GoogleFonts.montserrat(
                                       fontSize: 12,
-                                      color: Colors.grey[600],
+                                      color: Colors.black54,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+
+                            /// 🔹 Call / Mail buttons + duration
+                            Row(
+                              children: [
+                                _actionButton(Icons.call, "Call"),
+                                const SizedBox(width: 12),
+                                _actionButton(Icons.email_outlined, "Mail"),
+                                const Spacer(),
+                                Text(
+                                  '${meeting['duration']} min',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
           ),
         ],

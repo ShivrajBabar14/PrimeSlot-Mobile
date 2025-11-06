@@ -5,11 +5,7 @@ class ChatDetails extends StatefulWidget {
   final String name;
   final String avatarUrl;
 
-  const ChatDetails({
-    super.key,
-    required this.name,
-    required this.avatarUrl,
-  });
+  const ChatDetails({super.key, required this.name, required this.avatarUrl});
 
   @override
   State<ChatDetails> createState() => _ChatDetailsState();
@@ -22,11 +18,27 @@ class _ChatDetailsState extends State<ChatDetails> {
   // Dummy message data
   final List<Map<String, dynamic>> _messages = [
     {'text': 'Hey, how are you?', 'isMe': false, 'time': '10:40 AM'},
-    {'text': 'I am good, thanks! How about you?', 'isMe': true, 'time': '10:41 AM'},
-    {'text': 'Doing great. Let\'s catch up soon!', 'isMe': false, 'time': '10:41 AM'},
+    {
+      'text': 'I am good, thanks! How about you?',
+      'isMe': true,
+      'time': '10:41 AM',
+    },
+    {
+      'text': 'Doing great. Let\'s catch up soon!',
+      'isMe': false,
+      'time': '10:41 AM',
+    },
     {'text': 'Sure, sounds like a plan.', 'isMe': true, 'time': '10:42 AM'},
-    {'text': 'I was thinking we could go for a coffee this weekend.', 'isMe': false, 'time': '10:43 AM'},
-    {'text': 'That sounds perfect! Saturday?', 'isMe': true, 'time': '10:44 AM'},
+    {
+      'text': 'I was thinking we could go for a coffee this weekend.',
+      'isMe': false,
+      'time': '10:43 AM',
+    },
+    {
+      'text': 'That sounds perfect! Saturday?',
+      'isMe': true,
+      'time': '10:44 AM',
+    },
   ];
 
   @override
@@ -66,6 +78,8 @@ class _ChatDetailsState extends State<ChatDetails> {
       backgroundColor: const Color(0xFFECE5DD), // WhatsApp-like background
       appBar: AppBar(
         backgroundColor: const Color(0xFF0052CC),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         leadingWidth: 25,
         title: Row(
           children: [
@@ -84,10 +98,10 @@ class _ChatDetailsState extends State<ChatDetails> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.videocam, color: Colors.white),
-            onPressed: () {},
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.videocam, color: Colors.white),
+          //   onPressed: () {},
+          // ),
           IconButton(
             icon: const Icon(Icons.call, color: Colors.white),
             onPressed: () {},
@@ -163,7 +177,11 @@ class _MessageBubble extends StatelessWidget {
   final bool isMe;
   final String time;
 
-  const _MessageBubble({required this.text, required this.isMe, required this.time});
+  const _MessageBubble({
+    required this.text,
+    required this.isMe,
+    required this.time,
+  });
 
   @override
   Widget build(BuildContext context) {

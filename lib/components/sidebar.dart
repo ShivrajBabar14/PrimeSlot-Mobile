@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../screens/profile.dart';
+import '../components/feedback.dart';
 
 class Sidebar extends StatelessWidget {
   final VoidCallback? onProfileTap;
@@ -96,8 +97,11 @@ class Sidebar extends StatelessWidget {
               ),
             ),
             onTap: () {
-              // TODO: Implement feedback functionality
-              Navigator.pop(context);
+              Navigator.pop(context); // close drawer
+              showDialog(
+                context: context,
+                builder: (context) => const FeedbackDialog(),
+              );
             },
           ),
           ListTile(

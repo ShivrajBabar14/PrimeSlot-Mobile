@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../components/sidebar.dart';
+import '../components/chatlist.dart';
 
 class Message extends StatelessWidget {
   const Message({super.key});
@@ -20,9 +21,7 @@ class Message extends StatelessWidget {
         title: Text('Chats', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       drawer: Sidebar(),
-      body: Center(
-        child: Text('Messages Page'),
-      ),
+      body: const ChatList(),
     );
   }
 }

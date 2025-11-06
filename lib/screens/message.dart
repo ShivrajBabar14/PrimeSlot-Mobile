@@ -4,7 +4,8 @@ import '../components/sidebar.dart';
 import '../components/chatlist.dart';
 
 class Message extends StatelessWidget {
-  const Message({super.key});
+  final GlobalKey<ScaffoldState> scaffoldKey;
+  const Message({super.key, required this.scaffoldKey});
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +16,16 @@ class Message extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.menu, color: Colors.white),
           onPressed: () {
-            Scaffold.of(context).openDrawer();
+            scaffoldKey.currentState?.openDrawer();
           },
         ),
-        title: Text('Chats', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),
+        title: Text(
+          'Chats',
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
       drawer: Sidebar(),
       body: const ChatList(),

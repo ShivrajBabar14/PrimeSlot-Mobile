@@ -5,7 +5,9 @@ import '../components/appointmentcal.dart';
 import '../components/appointmentlist.dart';
 
 class Appointment extends StatefulWidget {
-  const Appointment({super.key});
+  final GlobalKey<ScaffoldState>? scaffoldKey;
+
+  const Appointment({super.key, this.scaffoldKey});
 
   @override
   State<Appointment> createState() => _AppointmentState();
@@ -24,7 +26,7 @@ class _AppointmentState extends State<Appointment> {
         leading: IconButton(
           icon: Icon(Icons.menu, color: Colors.white),
           onPressed: () {
-            Scaffold.of(context).openDrawer();
+            widget.scaffoldKey?.currentState?.openDrawer();
           },
         ),
         title: Text('Meetings', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),

@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../components/sidebar.dart';
 
 class Dashboard extends StatelessWidget {
-  const Dashboard({super.key});
+  final GlobalKey<ScaffoldState>? scaffoldKey;
+
+  const Dashboard({super.key, this.scaffoldKey});
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +16,11 @@ class Dashboard extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.menu, color: Colors.white),
           onPressed: () {
-            Scaffold.of(context).openDrawer();
+            scaffoldKey?.currentState?.openDrawer();
           },
         ),
         title: Text('Dashboard', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
-      drawer: Sidebar(),
       body: Center(
         child: Text('Dashboard Page'),
       ),

@@ -143,13 +143,13 @@ class _AppointmentListState extends State<AppointmentList> {
                       const SizedBox(height: 4),
 
                       /// 🔹 Contact Details
-                      Text(
-                        appointment['email'],
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
+                      // Text(
+                      //   appointment['email'],
+                      //   style: GoogleFonts.montserrat(
+                      //     fontSize: 12,
+                      //     color: Colors.grey[600],
+                      //   ),
+                      // ),
                       const SizedBox(height: 10),
 
                       /// 🔹 Action Buttons and Duration

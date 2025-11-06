@@ -1,14 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Sidebar extends StatelessWidget {
+  const Sidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
+    // Dummy user data
+    const String userName = "John Doe";
+    const String userEmail = "john.doe@example.com";
+    const String avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
+
     return Drawer(
+      backgroundColor: Colors.white,
       child: ListView(
+        padding: EdgeInsets.zero, // Remove default ListView padding
         children: [
-          DrawerHeader(child: Text('Sidebar')),
-          ListTile(title: Text('Item 1')),
-          ListTile(title: Text('Item 2')),
+          UserAccountsDrawerHeader(
+            accountName: Text(
+              userName,
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            accountEmail: Text(
+              userEmail,
+              style: GoogleFonts.montserrat(
+                color: Colors.white70,
+              ),
+            ),
+            currentAccountPicture: CircleAvatar(
+              backgroundImage: NetworkImage(avatarUrl),
+              backgroundColor: Colors.white,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFF0052CC),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person_outline, color: Colors.black87),
+            title: Text(
+              'Profile',
+              style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black87),
+            ),
+            onTap: () {
+              // TODO: Navigate to Profile screen
+              Navigator.pop(context); // Close the drawer
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.share_outlined, color: Colors.black87),
+            title: Text(
+              'Share App',
+              style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black87),
+            ),
+            onTap: () {
+              // TODO: Implement share app functionality
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.star_rate_outlined, color: Colors.black87),
+            title: Text(
+              'Rate Us',
+              style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black87),
+            ),
+            onTap: () {
+              // TODO: Implement rate us functionality
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.feedback_outlined, color: Colors.black87),
+            title: Text(
+              'Feedback',
+              style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black87),
+            ),
+            onTap: () {
+              // TODO: Implement feedback functionality
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined, color: Colors.black87),
+            title: Text(
+              'Settings',
+              style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black87),
+            ),
+            onTap: () {
+              // TODO: Navigate to Settings screen
+              Navigator.pop(context);
+            },
+          ),
+          const Divider(), // A visual separator
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            title: Text(
+              'Logout',
+              style: GoogleFonts.montserrat(fontSize: 16, color: Colors.redAccent),
+            ),
+            onTap: () {
+              // TODO: Implement logout functionality
+              Navigator.pop(context);
+            },
+          ),
         ],
       ),
     );

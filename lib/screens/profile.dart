@@ -4,7 +4,9 @@ import '../components/showqr.dart';
 import '../components/sidebar.dart';
 
 class Profile extends StatelessWidget {
-  const Profile({super.key});
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
+  const Profile({super.key, required this.scaffoldKey});
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +23,18 @@ class Profile extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () {
-            // The Scaffold.of(context) might not be available directly here.
-            // A Builder can be used if needed, but for now, this is standard.
-            Scaffold.of(context).openDrawer();
+            scaffoldKey.currentState?.openDrawer();
           },
         ),
-        title: Text('Profile', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),
+        title: Text(
+          'Profile',
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
-      drawer: Sidebar(),
+      drawer: const Sidebar(), // keep this if you want drawer active directly here
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 24.0),
         child: Column(
@@ -74,7 +80,6 @@ class Profile extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
           children: [
-            // The Card widget itself will provide the white background
             _buildInfoTile(
               icon: Icons.phone_android,
               title: 'Mobile',
@@ -90,18 +95,21 @@ class Profile extends StatelessWidget {
             ),
             const Divider(height: 1, indent: 16, endIndent: 16),
             ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              leading: const Icon(Icons.qr_code_2, color: Color(0xFF0052CC), size: 28),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              leading: const Icon(Icons.qr_code_2,
+                  color: Color(0xFF0052CC), size: 28),
               title: Text(
                 'Show QR Code',
                 style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
               ),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+              trailing: const Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) => const ShowQrDialog(
-                    data: 'john.doe@example.com', // This data will be encoded in the QR
+                    data: 'john.doe@example.com',
                     name: 'John Doe',
                   ),
                 );

@@ -5,6 +5,7 @@ import '../screens/appointment.dart';
 import '../screens/message.dart';
 import '../screens/profile.dart';
 import '../components/scanqr.dart';
+import '../components/sidebar.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -15,12 +16,13 @@ class BottomNav extends StatefulWidget {
 
 class _BottomNavState extends State<BottomNav> {
   int _selectedIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final _pages = const [
-    Dashboard(), // 0 - Home
-    Appointment(), // 1 - Appointments
-    Message(), // 2 - Messages
-    Profile(), // 3 - Profile
+  late final _pages = [
+    Dashboard(scaffoldKey: _scaffoldKey), // 0 - Home
+    Appointment(scaffoldKey: _scaffoldKey), // 1 - Appointments
+    Message(scaffoldKey: _scaffoldKey), // 2 - Messages
+    Profile(scaffoldKey: _scaffoldKey), // 3 - Profile
   ];
 
   Widget _buildTab({
@@ -65,7 +67,9 @@ class _BottomNavState extends State<BottomNav> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.grey[100],
+      drawer: Sidebar(),
       body: IndexedStack(index: _selectedIndex, children: _pages),
 
       // Floating QR button (center)

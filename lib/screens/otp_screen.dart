@@ -39,6 +39,7 @@ class _OtpScreenState extends State<OtpScreen> {
           content: Text("OTP Verified Successfully!",
               style: GoogleFonts.montserrat(color: Colors.white)),
           backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       // Navigate to BottomNav with dashboard selected

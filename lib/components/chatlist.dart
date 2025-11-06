@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../screens/chatdetails.dart';
 
 class ChatList extends StatefulWidget {
   const ChatList({super.key});
@@ -59,9 +60,12 @@ class _ChatListState extends State<ChatList> {
 
         return Column(
           children: [
-            InkWell(
+            GestureDetector(
               onTap: () {
-                // TODO: Navigate to chat details
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ChatDetails(name: chat['name'], avatarUrl: chat['avatarUrl'])),
+                );
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -150,7 +154,6 @@ class _ChatListState extends State<ChatList> {
                 ),
               ),
             ),
-
             /// 🔹 Divider below every chat (including last)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),

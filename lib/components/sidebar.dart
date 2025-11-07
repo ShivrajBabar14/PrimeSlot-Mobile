@@ -50,10 +50,8 @@ class Sidebar extends StatelessWidget {
             onTap: () {
               Navigator.pop(context); // Close drawer first
 
-              // Call the callback to set profile tab active in bottom nav
-              if (onProfileTap != null) {
-                onProfileTap!();
-              }
+              // Navigate to Profile screen
+              Navigator.push(context, MaterialPageRoute(builder: (_) => Profile(scaffoldKey: GlobalKey<ScaffoldState>())));
             },
           ),
           ListTile(

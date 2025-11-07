@@ -21,9 +21,9 @@ class Profile extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0052CC),
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            scaffoldKey.currentState?.openDrawer();
+            Navigator.pop(context);
           },
         ),
         title: Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../components/contactlist.dart';
 
 class Contacts extends StatelessWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -20,9 +21,7 @@ class Contacts extends StatelessWidget {
         ),
         title: Text('Contacts', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
-      body: Center(
-        child: Text('Contacts Screen', style: GoogleFonts.montserrat(fontSize: 24)),
-      ),
+      body: const ContactList(),
     );
   }
 }

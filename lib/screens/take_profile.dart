@@ -88,6 +88,7 @@ class _TakeProfileScreenState extends State<TakeProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           title: Text(
             "Choose Image Source",
             style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
@@ -132,6 +133,7 @@ class _TakeProfileScreenState extends State<TakeProfileScreen> {
         backgroundColor: const Color(0xFF0052CC),
         elevation: 0,
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           "Take Profile Picture",
           style: GoogleFonts.montserrat(

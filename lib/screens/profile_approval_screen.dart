@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../components/bottmnav.dart';
 
 class ProfileApprovalScreen extends StatefulWidget {
-  const ProfileApprovalScreen({super.key});
+  final File? selectedImage;
+  const ProfileApprovalScreen({super.key, this.selectedImage});
 
   @override
   State<ProfileApprovalScreen> createState() => _ProfileApprovalScreenState();
@@ -116,7 +118,9 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
                 children: [
                   CircleAvatar(
                     radius: 45,
-                    backgroundImage: NetworkImage(userInfo['photo']),
+                    backgroundImage: widget.selectedImage != null
+                        ? FileImage(widget.selectedImage!)
+                        : NetworkImage(userInfo['photo']),
                   ),
                   const SizedBox(height: 12),
                   Text(

@@ -145,13 +145,8 @@ class Sidebar extends StatelessWidget {
               },
             ),
             _buildMenuItem(
-              icon: Icons.share_outlined,
-              title: 'Share App',
-              onTap: () => Navigator.pop(context),
-            ),
-            _buildMenuItem(
-              icon: Icons.star_rate_outlined,
-              title: 'Rate Us',
+              icon: Icons.settings_outlined,
+              title: 'Settings',
               onTap: () => Navigator.pop(context),
             ),
             _buildMenuItem(
@@ -166,10 +161,16 @@ class Sidebar extends StatelessWidget {
               },
             ),
             _buildMenuItem(
-              icon: Icons.settings_outlined,
-              title: 'Settings',
+              icon: Icons.share_outlined,
+              title: 'Share App',
               onTap: () => Navigator.pop(context),
             ),
+            _buildMenuItem(
+              icon: Icons.star_rate_outlined,
+              title: 'Rate Us',
+              onTap: () => Navigator.pop(context),
+            ),
+            
 
             const Divider(height: 30, thickness: 0.5, color: Colors.grey),
 

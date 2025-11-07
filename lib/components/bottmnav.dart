@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../screens/dashboard.dart';
 import '../screens/appointment.dart';
 import '../screens/message.dart';
-import '../screens/profile.dart';
+import '../screens/contacts.dart';
 import '../components/scanqr.dart';
 import '../components/sidebar.dart';
 
@@ -22,7 +22,7 @@ class _BottomNavState extends State<BottomNav> {
     Dashboard(scaffoldKey: _scaffoldKey), // 0 - Home
     Appointment(scaffoldKey: _scaffoldKey), // 1 - Appointments
     Message(scaffoldKey: _scaffoldKey), // 2 - Messages
-    Profile(scaffoldKey: _scaffoldKey), // 3 - Profile
+    Contacts(scaffoldKey: _scaffoldKey), // 3 - Contacts
   ];
 
   Widget _buildTab({

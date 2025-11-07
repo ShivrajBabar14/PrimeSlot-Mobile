@@ -22,9 +22,12 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
     'name': 'John Doe',
     'email': 'john.doe@example.com',
     'phone': '+91 9876543210',
-    'userId': 'USR12345',
-    'userType': 'Consultant',
-    'business': 'Health & Wellness Co.',
+    'businessName': 'Health & Wellness Co.',
+    'businessCategory': 'Healthcare',
+    'chapterName': 'Delhi Chapter',
+    'region': 'North India',
+    'city': 'New Delhi',
+    'memberStatus': 'Active',
   };
 
   void _approveProfile() {
@@ -143,9 +146,12 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
 
                   /// 🔹 Profile Info List
                   _infoTile("Phone", userInfo['phone']),
-                  _infoTile("User ID", userInfo['userId']),
-                  _infoTile("User Type", userInfo['userType']),
-                  _infoTile("Business", userInfo['business']),
+                  _infoTile("Business Name", userInfo['businessName']),
+                  _infoTile("Business Category", userInfo['businessCategory']),
+                  _infoTile("Chapter Name", userInfo['chapterName']),
+                  _infoTile("Region", userInfo['region']),
+                  _infoTile("City", userInfo['city']),
+                  _infoTile("Member Status", userInfo['memberStatus']),
                 ],
               ),
             ),

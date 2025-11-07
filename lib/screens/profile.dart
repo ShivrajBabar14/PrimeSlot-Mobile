@@ -8,13 +8,20 @@ class Profile extends StatelessWidget {
 
   const Profile({super.key, required this.scaffoldKey});
 
+  // Dummy data for the profile
+  static const String name = "John Doe";
+  static const String email = "john.doe@example.com";
+  static const String mobile = "+1 (123) 456-7890";
+  static const String avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
+  static const String businessName = "Health & Wellness Co.";
+  static const String businessCategory = "Healthcare";
+  static const String chapterName = "Delhi Chapter";
+  static const String region = "North India";
+  static const String city = "New Delhi";
+  static const String memberStatus = "Active";
+
   @override
   Widget build(BuildContext context) {
-    // Dummy data for the profile
-    const String name = "John Doe";
-    const String email = "john.doe@example.com";
-    const String mobile = "+1 (123) 456-7890";
-    const String avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
@@ -83,15 +90,57 @@ class Profile extends StatelessWidget {
             _buildInfoTile(
               icon: Icons.phone_android,
               title: 'Mobile',
-              subtitle: '+1 (123) 456-7890',
+              subtitle: mobile,
               color: Colors.green,
             ),
             const Divider(height: 1, indent: 16, endIndent: 16),
             _buildInfoTile(
               icon: Icons.email_outlined,
               title: 'Email',
-              subtitle: 'john.doe@example.com',
+              subtitle: email,
               color: Colors.orange,
+            ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            _buildInfoTile(
+              icon: Icons.business,
+              title: 'Business Name',
+              subtitle: businessName,
+              color: Colors.blue,
+            ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            _buildInfoTile(
+              icon: Icons.category,
+              title: 'Business Category',
+              subtitle: businessCategory,
+              color: Colors.purple,
+            ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            _buildInfoTile(
+              icon: Icons.group,
+              title: 'Chapter Name',
+              subtitle: chapterName,
+              color: Colors.teal,
+            ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            _buildInfoTile(
+              icon: Icons.location_on,
+              title: 'Region',
+              subtitle: region,
+              color: Colors.red,
+            ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            _buildInfoTile(
+              icon: Icons.location_city,
+              title: 'City',
+              subtitle: city,
+              color: Colors.indigo,
+            ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            _buildInfoTile(
+              icon: Icons.verified_user,
+              title: 'Member Status',
+              subtitle: memberStatus,
+              color: Colors.green,
             ),
             const Divider(height: 1, indent: 16, endIndent: 16),
             ListTile(
@@ -108,9 +157,9 @@ class Profile extends StatelessWidget {
               onTap: () {
                 showDialog(
                   context: context,
-                  builder: (context) => const ShowQrDialog(
-                    data: 'john.doe@example.com',
-                    name: 'John Doe',
+                  builder: (context) => ShowQrDialog(
+                    data: email,
+                    name: name,
                   ),
                 );
               },

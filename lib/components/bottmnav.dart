@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../screens/dashboard.dart';
 import '../screens/appointment.dart';
-import '../screens/message.dart';
+import '../screens/events.dart';
 import '../screens/contacts.dart';
 import '../components/scanqr.dart';
 import '../components/sidebar.dart';
@@ -21,7 +21,7 @@ class _BottomNavState extends State<BottomNav> {
   late final _pages = [
     Dashboard(scaffoldKey: _scaffoldKey), // 0 - Home
     Appointment(scaffoldKey: _scaffoldKey), // 1 - Appointments
-    Message(scaffoldKey: _scaffoldKey), // 2 - Messages
+    Events(scaffoldKey: _scaffoldKey), // 2 - Events
     Contacts(scaffoldKey: _scaffoldKey), // 3 - Contacts
   ];
 

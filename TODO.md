@@ -1,2 +1,4 @@
-- [x] Edit bottmnav.dart: Import contacts.dart and change _pages[3] from Profile to Contacts
-- [x] Create contacts.dart: Implement screen with AppBar (title: Contacts, hamburger icon), drawer: Sidebar, body: placeholder contacts list
+# TODO List for Upcoming Events Component
+
+- [x] Create the UpcomingEvents component in lib/components/eventlist.dart
+- [x] Update lib/screens/events.dart to import and use the UpcomingEvents component

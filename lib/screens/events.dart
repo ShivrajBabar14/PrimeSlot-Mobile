@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../components/sidebar.dart';
+import '../components/eventlist.dart';
 
 class Events extends StatelessWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -27,7 +28,7 @@ class Events extends StatelessWidget {
         ),
       ),
       drawer: Sidebar(),
-      body: Container(),
+      body: const UpcomingEvents(),
     );
   }
 }

@@ -6,31 +6,31 @@ class DashboardStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Stats data
+    // Updated Dashboard Stats Data
     final List<Map<String, dynamic>> stats = [
       {
-        'icon': Icons.calendar_today,
-        'title': 'Appointments',
-        'value': '45',
-        'color': const Color(0xFF4ABAFD),
+        'icon': Icons.calendar_month_outlined,
+        'title': 'One to One',
+        'value': '12',
+        'color': const Color(0xFF2E94EE), // Blue
       },
       {
-        'icon': Icons.check_circle,
-        'title': 'Completed',
-        'value': '32',
-        'color': Colors.green,
+        'icon': Icons.event_available_outlined,
+        'title': 'Upcoming Events',
+        'value': '5',
+        'color': const Color(0xFF00C853), // Green
       },
       {
-        'icon': Icons.payment,
-        'title': 'Received',
-        'value': '\$2,500',
-        'color': Colors.orange,
+        'icon': Icons.share_outlined,
+        'title': 'Reference Shared',
+        'value': '9',
+        'color': const Color(0xFFFFA000), // Amber
       },
       {
-        'icon': Icons.pending_actions,
-        'title': 'Pending',
-        'value': '\$750',
-        'color': Colors.red,
+        'icon': Icons.business_center_outlined,
+        'title': 'Business Received',
+        'value': '4',
+        'color': const Color(0xFFE53935), // Red
       },
     ];
 
@@ -39,54 +39,65 @@ class DashboardStats extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: Colors.black12.withOpacity(0.08),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: stats.map((item) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: item['color'].withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    item['icon'],
-                    color: item['color'],
-                    size: 22,
-                  ),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+
+        // ✅ Fix: Use SingleChildScrollView to prevent overflow
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: stats.map((item) {
+              return Container(
+                width: 90, // fixed width for uniformity
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: item['color'].withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        item['icon'],
+                        color: item['color'],
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      item['value'],
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      item['title'],
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12.5,
+                        color: Colors.grey[700],
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  item['value'],
-                  style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item['title'],
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ),
       ),
     );

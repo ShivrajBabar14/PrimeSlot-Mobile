@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../components/showqr.dart';
+// import '../components/showqr.dart';
 import '../components/sidebar.dart';
 
 class ContactDetails extends StatelessWidget {
@@ -22,17 +22,7 @@ class ContactDetails extends StatelessWidget {
     final String city = contact['city'] ?? 'City';
     final String memberStatus = contact['memberStatus'] ?? 'Status';
 
-    // Use variables in the widget
-    final String displayName = name;
-    final String displayEmail = email;
-    final String displayMobile = mobile;
-    final String displayBusinessName = businessName;
-    final String displayBusinessCategory = businessCategory;
-    final String displayChapterName = chapterName;
-    final String displayRegion = region;
-    final String displayCity = city;
-    final String displayMemberStatus = memberStatus;
-
+  
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
       appBar: AppBar(

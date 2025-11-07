@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'contactdetails.dart';
 
 class ContactList extends StatefulWidget {
   const ContactList({super.key});
@@ -50,7 +51,12 @@ class _ContactListState extends State<ContactList> {
           children: [
             GestureDetector(
               onTap: () {
-                // TODO: Navigate to contact details or chat
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ContactDetails(contact: contact),
+                  ),
+                );
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),

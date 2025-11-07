@@ -86,7 +86,7 @@ class _AppointmentListState extends State<AppointmentList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Appointments (${filteredAppointments.length})",
+            "Meetings (${filteredAppointments.length})",
             style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.bold,

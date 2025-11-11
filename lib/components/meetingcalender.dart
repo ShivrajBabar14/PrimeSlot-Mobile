@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'meetingrequest.dart';
 
 class MeetingCalendar extends StatefulWidget {
   final String scannedUserData;
@@ -321,70 +322,12 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
   }
 
   void _selectTimeSlot(String slot) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.schedule_rounded, size: 48, color: Colors.blue.shade700),
-              const SizedBox(height: 16),
-              Text(
-                "Confirm Meeting Request",
-                style: GoogleFonts.montserrat(
-                  fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                "Date: ${_selectedDay!.day}/${_selectedDay!.month}/${_selectedDay!.year}\nTime: $slot",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(fontSize: 14),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "This will send a meeting request to the other participant for approval.",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(color: Colors.grey[600], fontSize: 13),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.blue.shade700),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text("Cancel", style: GoogleFonts.montserrat(color: Colors.blue.shade700)),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: Colors.green.shade600,
-                          content: Text(
-                            "Meeting request sent successfully!",
-                            style: GoogleFonts.montserrat(color: Colors.white),
-                          ),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text("Send Request", style: GoogleFonts.montserrat(color: Colors.white)),
-                  ),
-                ],
-              ),
-            ],
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MeetingRequest(
+          selectedDate: _selectedDay!,
+          selectedTime: slot,
         ),
       ),
     );

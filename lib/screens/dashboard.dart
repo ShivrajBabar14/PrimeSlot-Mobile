@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 // import '../components/sidebar.dart';
 import '../components/dashboardappo.dart';
 import '../components/dashboardstats.dart';
+import '../components/pendingrequest.dart';
 
 class Dashboard extends StatelessWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -22,6 +23,17 @@ class Dashboard extends StatelessWidget {
           },
         ),
         title: Text('Dashboard', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.notifications, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PendingRequest()),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(

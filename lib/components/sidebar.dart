@@ -50,80 +50,88 @@ class Sidebar extends StatelessWidget {
                 Positioned(
                   top: 40,
                   left: 20,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  right: 20,
+                  child: Column(
                     children: [
-                      // 🧑 Profile avatar
-                      CircleAvatar(
-                        radius: 35,
-                        backgroundColor: Colors.white,
-                        child: CircleAvatar(
-                          radius: 32,
-                          backgroundImage: NetworkImage(avatarUrl),
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                      // 📝 Name and email
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // First row: Profile icon in center
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            userName,
-                            style: GoogleFonts.montserrat(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          CircleAvatar(
+                            radius: 35,
+                            backgroundColor: Colors.white,
+                            child: CircleAvatar(
+                              radius: 32,
+                              backgroundImage: NetworkImage(avatarUrl),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            userEmail,
-                            style: GoogleFonts.montserrat(
-                              color: Colors.white70,
-                              fontSize: 13,
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      // Second row: Name, email, and QR icon
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // 📝 Name and email
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  userName,
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  userEmail,
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // 🎟 QR Icon
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context);
+                              showDialog(
+                                context: context,
+                                builder: (context) => ShowQrDialog(
+                                  data: userEmail,
+                                  name: userName,
+                                ),
+                              );
+                            },
+                            child: Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26.withOpacity(0.15),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.qr_code_2,
+                                color: Color(0xFF0052CC),
+                                size: 25,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ],
-                  ),
-                ),
-
-                // 🎟 QR Icon Floating Button
-                Positioned(
-                  bottom: 15,
-                  right: 20,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      showDialog(
-                        context: context,
-                        builder: (context) => ShowQrDialog(
-                          data: userEmail,
-                          name: userName,
-                        ),
-                      );
-                    },
-                    child: Container(
-                      height: 60,
-                      width: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26.withOpacity(0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.qr_code_2,
-                        color: Color(0xFF0052CC),
-                        size: 30,
-                      ),
-                    ),
                   ),
                 ),
               ],

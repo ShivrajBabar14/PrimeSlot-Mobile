@@ -8,178 +8,170 @@ class Profile extends StatelessWidget {
 
   const Profile({super.key, required this.scaffoldKey});
 
-  // Dummy data for the profile
-  static const String name = "John Doe";
-  static const String email = "john.doe@example.com";
-  static const String mobile = "+1 (123) 456-7890";
-  static const String avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
-  static const String businessName = "Health & Wellness Co.";
-  static const String businessCategory = "Healthcare";
-  static const String chapterName = "Delhi Chapter";
-  static const String region = "North India";
-  static const String city = "New Delhi";
-  static const String memberStatus = "Active";
-  static const String trafficLight = "Green";
+  // Dummy data
+  static const name = "John Doe";
+  static const email = "john.doe@example.com";
+  static const mobile = "+1 (123) 456-7890";
+  static const avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
+  static const businessName = "Health & Wellness Co.";
+  static const businessCategory = "Healthcare";
+  static const chapterName = "Delhi Chapter";
+  static const region = "North India";
+  static const city = "New Delhi";
+  static const memberStatus = "Active";
+  static const trafficLight = "green";
 
   @override
   Widget build(BuildContext context) {
+    final Color mainBlue = const Color(0xFF0052CC);
+    final trafficColor = _getTrafficLightColor(trafficLight);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
+      backgroundColor: const Color(0xFFF3F5FB),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0052CC),
+        backgroundColor: mainBlue,
+        elevation: 2,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Profile',
+          "Profile",
           style: GoogleFonts.montserrat(
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      drawer: const Sidebar(), // keep this if you want drawer active directly here
+      drawer: const Sidebar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 24.0),
+        padding: const EdgeInsets.only(bottom: 30),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            const SizedBox(height: 8),
+
+            // 🔹 Profile Card
             Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _getTrafficLightColor(trafficLight),
-                  width: 4,
+                // color: Colors.white,
+                // borderRadius: BorderRadius.circular(20),
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.black.withOpacity(0.1),
+                //     blurRadius: 10,
+                //     offset: const Offset(0, 5),
+                //   ),
+                // ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: trafficColor,
+                        width: 3,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: const NetworkImage(avatarUrl),
+                      backgroundColor: Colors.grey[300],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    name,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    email,
+                    style: GoogleFonts.montserrat(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      "Status: $memberStatus",
+                      style: GoogleFonts.montserrat(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 0),
+
+            // 🔹 Personal Info Card
+            _buildSectionCard(
+              title: "Personal Information",
+              children: [
+                _buildTile(Icons.phone_android, "Mobile", mobile, Colors.green),
+                _buildTile(Icons.location_city, "City", city, Colors.indigo),
+                _buildTile(Icons.location_on, "Region", region, Colors.red),
+              ],
+            ),
+
+            // 🔹 Business Info Card
+            _buildSectionCard(
+              title: "Business Information",
+              children: [
+                _buildTile(Icons.business, "Business Name", businessName, Colors.blue),
+                _buildTile(Icons.category, "Business Category", businessCategory, Colors.purple),
+                _buildTile(Icons.group, "Chapter Name", chapterName, Colors.teal),
+                _buildTrafficLightTile(),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // 🔹 QR Code Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: mainBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 3,
+                ),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ShowQrDialog(data: email, name: name),
+                  );
+                },
+                icon: const Icon(Icons.qr_code_2, color: Colors.white),
+                label: Text(
+                  "Show QR Code",
+                  style: GoogleFonts.montserrat(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
                 ),
               ),
-              child: const CircleAvatar(
-                radius: 60,
-                backgroundImage: NetworkImage(avatarUrl),
-                backgroundColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              name,
-              style: GoogleFonts.montserrat(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              email,
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 24),
-            _buildInfoCard(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Card(
-        color: Colors.white,
-        elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          children: [
-            _buildInfoTile(
-              icon: Icons.phone_android,
-              title: 'Mobile',
-              subtitle: mobile,
-              color: Colors.green,
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _buildInfoTile(
-              icon: Icons.email_outlined,
-              title: 'Email',
-              subtitle: email,
-              color: Colors.orange,
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _buildInfoTile(
-              icon: Icons.business,
-              title: 'Business Name',
-              subtitle: businessName,
-              color: Colors.blue,
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _buildInfoTile(
-              icon: Icons.category,
-              title: 'Business Category',
-              subtitle: businessCategory,
-              color: Colors.purple,
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _buildInfoTile(
-              icon: Icons.group,
-              title: 'Chapter Name',
-              subtitle: chapterName,
-              color: Colors.teal,
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _buildInfoTile(
-              icon: Icons.location_on,
-              title: 'Region',
-              subtitle: region,
-              color: Colors.red,
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _buildInfoTile(
-              icon: Icons.location_city,
-              title: 'City',
-              subtitle: city,
-              color: Colors.indigo,
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _buildInfoTile(
-              icon: Icons.verified_user,
-              title: 'Member Status',
-              subtitle: memberStatus,
-              color: Colors.green,
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            _buildInfoTile(
-              icon: Icons.traffic,
-              title: 'Traffic Light',
-              subtitle: trafficLight.toUpperCase(),
-              color: _getTrafficLightColor(trafficLight),
-            ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              leading: const Icon(Icons.qr_code_2,
-                  color: Color(0xFF0052CC), size: 28),
-              title: Text(
-                'Show QR Code',
-                style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios,
-                  size: 16, color: Colors.grey),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => ShowQrDialog(
-                    data: email,
-                    name: name,
-                  ),
-                );
-              },
             ),
           ],
         ),
@@ -187,33 +179,115 @@ class Profile extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTile({
-    required IconData icon,
+  // Section Card Widget
+  Widget _buildSectionCard({
     required String title,
-    required String subtitle,
-    required Color color,
+    required List<Widget> children,
   }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      leading: Icon(icon, color: color, size: 28),
-      title: Text(
-        title,
-        style: GoogleFonts.montserrat(
-          color: Colors.grey[600],
-          fontSize: 14,
-        ),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          )
+        ],
       ),
-      subtitle: Text(
-        subtitle,
-        style: GoogleFonts.montserrat(
-          color: Colors.black87,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.montserrat(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF0052CC),
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...children,
+        ],
       ),
     );
   }
 
+  // Info Row Widget
+  Widget _buildTile(IconData icon, String title, String value, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: color.withOpacity(0.1),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: GoogleFonts.montserrat(
+                        color: Colors.grey[600], fontSize: 12)),
+                Text(
+                  value,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  // Traffic Light Tile Widget
+  Widget _buildTrafficLightTile() {
+    final trafficColor = _getTrafficLightColor(trafficLight);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: trafficColor.withOpacity(0.1),
+            child: Icon(Icons.traffic, color: trafficColor, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Traffic Light",
+                    style: GoogleFonts.montserrat(
+                        color: Colors.grey[600], fontSize: 12)),
+                Text(
+                  trafficLight.toUpperCase(),
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  // Traffic Color Logic
   Color _getTrafficLightColor(String light) {
     switch (light.toLowerCase()) {
       case 'green':

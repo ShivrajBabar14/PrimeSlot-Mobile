@@ -77,6 +77,10 @@ class UpcomingEvents extends StatelessWidget {
                             event: {
                               ...event,
                               'image': 'https://picsum.photos/400/200?random=${index + 1}',
+                              'date': event['date'] ?? '2025-11-12',
+                              'time': '9:00 AM - 6:00 PM',
+                              'address': 'Convention Center, New Delhi',
+                              'location': '28.6139° N, 77.2090° E',
                             },
                           ),
                         ),

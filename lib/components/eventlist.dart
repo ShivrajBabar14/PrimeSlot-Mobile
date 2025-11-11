@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'itenary.dart';
 
 class UpcomingEvents extends StatelessWidget {
   const UpcomingEvents({super.key});
@@ -61,69 +62,84 @@ class UpcomingEvents extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 🖼️ Top Image
-                      Container(
-                        height: 150,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(16),
-                            topRight: Radius.circular(16),
-                          ),
-                          image: DecorationImage(
-                            image: NetworkImage(
-                              'https://picsum.photos/400/200?random=${index + 1}',
-                            ),
-                            fit: BoxFit.cover,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EventItinerary(
+                            event: {
+                              ...event,
+                              'image': 'https://picsum.photos/400/200?random=${index + 1}',
+                            },
                           ),
                         ),
-                      ),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 🖼️ Top Image
+                        Container(
+                          height: 150,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                            ),
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                'https://picsum.photos/400/200?random=${index + 1}',
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
 
-                      // 📝 Event Details Below Image
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              event['title']!,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today,
-                                    size: 14, color: Color(0xFF0052CC)),
-                                const SizedBox(width: 6),
-                                Text(
-                                  event['date']!,
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 13,
-                                    color: Colors.grey[700],
-                                  ),
+                        // 📝 Event Details Below Image
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                event['title']!,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              event['description']!,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 13.5,
-                                color: Colors.grey[800],
-                                height: 1.4,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.calendar_today,
+                                      size: 14, color: Color(0xFF0052CC)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    event['date']!,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 13,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                event['description']!,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 13.5,
+                                  color: Colors.grey[800],
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },

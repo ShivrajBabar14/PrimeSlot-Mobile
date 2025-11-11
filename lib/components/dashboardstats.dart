@@ -48,56 +48,51 @@ class DashboardStats extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
-
-        // ✅ Fix: Use SingleChildScrollView to prevent overflow
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: stats.map((item) {
-              return Container(
-                width: 90, // fixed width for uniformity
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: item['color'].withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        item['icon'],
-                        color: item['color'],
-                        size: 24,
-                      ),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: stats.map((item) {
+            return Container(
+              width: 70, // reduced width
+              margin: const EdgeInsets.symmetric(horizontal: 4), // reduced margin
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10), // reduced padding
+                    decoration: BoxDecoration(
+                      color: item['color'].withOpacity(0.1),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      item['value'],
-                      style: GoogleFonts.montserrat(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                    child: Icon(
+                      item['icon'],
+                      color: item['color'],
+                      size: 20, // reduced icon size
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item['title'],
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 12.5,
-                        color: Colors.grey[700],
-                        height: 1.3,
-                      ),
+                  ),
+                  const SizedBox(height: 8), // reduced spacing
+                  Text(
+                    item['value'],
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16, // reduced font size
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
+                  ),
+                  const SizedBox(height: 4), // reduced spacing
+                  Text(
+                    item['title'],
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 11, // reduced font size
+                      color: Colors.grey[700],
+                      height: 1.2, // adjusted line height
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
         ),
       ),
     );

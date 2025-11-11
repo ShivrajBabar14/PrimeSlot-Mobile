@@ -283,6 +283,47 @@ class _EventItineraryState extends State<EventItinerary>
           ),
         ),
 
+        const SizedBox(height: 20),
+
+        // 🔹 Description Section
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'About the Event',
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0052CC),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                widget.event['description'] ??
+                    'Join us for an extraordinary experience of networking, learning, and collaboration with business leaders and innovators.',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  color: Colors.grey[800],
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+
         const SizedBox(height: 16),
 
         // 🔹 Venue Card with Mini Map
@@ -386,46 +427,7 @@ class _EventItineraryState extends State<EventItinerary>
           ),
         ),
 
-        const SizedBox(height: 20),
-
-        // 🔹 Description Section
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'About the Event',
-                style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0052CC),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                widget.event['description'] ??
-                    'Join us for an extraordinary experience of networking, learning, and collaboration with business leaders and innovators.',
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: Colors.grey[800],
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
+        
       ],
     ),
   );
@@ -434,9 +436,27 @@ class _EventItineraryState extends State<EventItinerary>
 
   // 👇 Add this helper for launching Google Maps
   Future<void> _launchUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw 'Could not launch $url';
+    try {
+      final Uri uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      // Fallback: try to launch without external application mode
+      try {
+        final Uri uri = Uri.parse(url);
+        if (!await launchUrl(uri)) {
+          throw 'Could not launch $url';
+        }
+      } catch (fallbackError) {
+        // Show user-friendly error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Unable to open maps. Please check your internet connection.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

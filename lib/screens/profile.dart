@@ -144,7 +144,7 @@ class Profile extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // 🔹 QR Code Button
+            // 🔹 Show QR Code Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: ElevatedButton.icon(
@@ -157,9 +157,25 @@ class Profile extends StatelessWidget {
                   elevation: 3,
                 ),
                 onPressed: () {
+                  // Create JSON data with all profile information
+                  final profileData = {
+                    'name': name,
+                    'email': email,
+                    'mobile': mobile,
+                    'avatarUrl': avatarUrl,
+                    'businessName': businessName,
+                    'businessCategory': businessCategory,
+                    'chapterName': chapterName,
+                    'region': region,
+                    'city': city,
+                    'memberStatus': memberStatus,
+                    'trafficLight': trafficLight,
+                  };
+                  final jsonData = profileData.toString();
+
                   showDialog(
                     context: context,
-                    builder: (context) => ShowQrDialog(data: email, name: name),
+                    builder: (context) => ShowQrDialog(data: jsonData, name: name),
                   );
                 },
                 icon: const Icon(Icons.qr_code_2, color: Colors.white),
@@ -302,4 +318,6 @@ class Profile extends StatelessWidget {
         return Colors.green;
     }
   }
+
+
 }

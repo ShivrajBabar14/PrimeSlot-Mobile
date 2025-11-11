@@ -12,6 +12,7 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _anim;
   bool _isProcessing = false;
+  String? _scannedData;
 
   static const double _boxSize = 220.0;
   static const double _borderRadius = 20.0;
@@ -41,8 +42,59 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
     final String? value = codes.first.rawValue;
     if (value == null || value.isEmpty) return;
 
-    _isProcessing = true;
-    Navigator.pop(context, value);
+    setState(() {
+      _scannedData = value;
+      _isProcessing = true;
+    });
+
+    // Show the scanned data instead of immediately closing
+    _showScannedDataDialog(value);
+  }
+
+  void _showScannedDataDialog(String data) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('QR Code Scanned'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Scanned Data:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                data,
+                style: const TextStyle(fontFamily: 'monospace'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                setState(() {
+                  _isProcessing = false;
+                  _scannedData = null;
+                });
+              },
+              child: const Text('Scan Again'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(data); // Return data to previous screen
+              },
+              child: const Text('Use Data'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

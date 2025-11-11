@@ -4,13 +4,18 @@ import 'package:google_fonts/google_fonts.dart';
 class PendingRequest extends StatefulWidget {
   const PendingRequest({super.key});
 
+  // Static method to get pending requests count
+  static int getPendingRequestsCount() {
+    return _PendingRequestState._pendingRequests.length;
+  }
+
   @override
   State<PendingRequest> createState() => _PendingRequestState();
 }
 
 class _PendingRequestState extends State<PendingRequest> {
-  // Mock data for pending meeting requests
-  final List<Map<String, dynamic>> _pendingRequests = [
+  // Mock data for pending meeting requests - made static for access from Dashboard
+  static final List<Map<String, dynamic>> _pendingRequests = [
     {
       'id': '1',
       'requesterName': 'John Smith',

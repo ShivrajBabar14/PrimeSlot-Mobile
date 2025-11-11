@@ -102,8 +102,8 @@ class _EventItineraryState extends State<EventItinerary> with SingleTickerProvid
                     fontWeight: FontWeight.w500,
                   ),
                   tabs: const [
-                    Tab(text: 'Itinerary'),
                     Tab(text: 'Details'),
+                    Tab(text: 'Itinerary'),
                   ],
                 ),
               ],
@@ -115,10 +115,10 @@ class _EventItineraryState extends State<EventItinerary> with SingleTickerProvid
             child: TabBarView(
               controller: _tabController,
               children: [
-                // Itinerary Tab
-                _buildItineraryContent(),
                 // Details Tab
                 _buildDetailsContent(),
+                // Itinerary Tab
+                _buildItineraryContent(),
               ],
             ),
           ),

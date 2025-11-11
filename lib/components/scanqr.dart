@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'meetingcalender.dart';
 
 class ScanQR extends StatefulWidget {
   const ScanQR({super.key});
@@ -90,9 +91,13 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(data); // Return data to previous screen
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => MeetingCalendar(scannedUserData: data),
+                  ),
+                );
               },
-              child: const Text('Use Data'),
+              child: const Text('Schedule Meeting'),
             ),
           ],
         );

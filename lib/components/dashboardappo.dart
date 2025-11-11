@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../screens/profile.dart';
 
 class DashboardMeetings extends StatefulWidget {
   const DashboardMeetings({super.key});
@@ -170,14 +171,42 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
                             ),
                             const SizedBox(height: 4),
 
-                            /// 🔹 Client Name
-                            Text(
-                              meeting['clientName'],
-                              style: GoogleFonts.montserrat(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[700],
-                              ),
+                            /// 🔹 Client Name with Profile Icon
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Profile(
+                                          scaffoldKey: GlobalKey<ScaffoldState>(),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Color(0xFF0052CC),
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    meeting['clientName'],
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 6),
 

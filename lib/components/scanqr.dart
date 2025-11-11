@@ -42,6 +42,9 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
     final String? value = codes.first.rawValue;
     if (value == null || value.isEmpty) return;
 
+    // Log the scanned data to console
+    print('QR Code Scanned - Data: $value');
+
     setState(() {
       _scannedData = value;
       _isProcessing = true;

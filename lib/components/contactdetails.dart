@@ -21,6 +21,7 @@ class ContactDetails extends StatelessWidget {
     final String region = contact['region'] ?? 'Region';
     final String city = contact['city'] ?? 'City';
     final String memberStatus = contact['memberStatus'] ?? 'Status';
+    final String trafficLight = contact['trafficLight'] ?? 'green';
 
   
     return Scaffold(
@@ -47,10 +48,19 @@ class ContactDetails extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 60,
-              backgroundImage: NetworkImage(avatarUrl),
-              backgroundColor: Colors.white,
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _getTrafficLightColor(trafficLight),
+                  width: 4,
+                ),
+              ),
+              child: CircleAvatar(
+                radius: 60,
+                backgroundImage: NetworkImage(avatarUrl),
+                backgroundColor: Colors.white,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -88,6 +98,7 @@ class ContactDetails extends StatelessWidget {
     final String city = contact['city'] ?? 'City';
     final String memberStatus = contact['memberStatus'] ?? 'Status';
     final String name = contact['name'] ?? 'Unknown';
+    final String trafficLight = contact['trafficLight'] ?? 'green';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -153,6 +164,13 @@ class ContactDetails extends StatelessWidget {
               subtitle: memberStatus,
               color: Colors.green,
             ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            _buildInfoTile(
+              icon: Icons.traffic,
+              title: 'Traffic Light',
+              subtitle: trafficLight.toUpperCase(),
+              color: _getTrafficLightColor(trafficLight),
+            ),
           ],
         ),
       ),
@@ -184,5 +202,20 @@ class ContactDetails extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getTrafficLightColor(String light) {
+    switch (light.toLowerCase()) {
+      case 'green':
+        return Colors.green;
+      case 'amber':
+        return Colors.amber;
+      case 'gray':
+        return Colors.grey;
+      case 'red':
+        return Colors.red;
+      default:
+        return Colors.green;
+    }
   }
 }

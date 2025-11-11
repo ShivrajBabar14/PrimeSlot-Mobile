@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
 
               Text(
-                'Welcome Back',
+                'Welcome',
                 style: GoogleFonts.montserrat(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,

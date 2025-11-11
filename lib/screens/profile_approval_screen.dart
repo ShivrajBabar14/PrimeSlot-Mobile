@@ -14,6 +14,7 @@ class ProfileApprovalScreen extends StatefulWidget {
 class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
   bool showRequestField = false;
   final TextEditingController _messageController = TextEditingController();
+  String selectedTrafficLight = 'green';
 
   // 🧩 Dummy user data (replace with actual API response)
   final Map<String, dynamic> userInfo = {
@@ -77,6 +78,21 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
     });
   }
 
+  Color getTrafficLightColor(String light) {
+    switch (light) {
+      case 'green':
+        return Colors.green;
+      case 'amber':
+        return Colors.amber;
+      case 'gray':
+        return Colors.grey;
+      case 'red':
+        return Colors.red;
+      default:
+        return Colors.green;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,11 +135,20 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  CircleAvatar(
-                    radius: 45,
-                    backgroundImage: widget.selectedImage != null
-                        ? FileImage(widget.selectedImage!)
-                        : NetworkImage(userInfo['photo']),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: getTrafficLightColor(selectedTrafficLight),
+                        width: 4,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 45,
+                      backgroundImage: widget.selectedImage != null
+                          ? FileImage(widget.selectedImage!)
+                          : NetworkImage(userInfo['photo']),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -152,6 +177,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
                   _infoTile("Region", userInfo['region'] ?? 'N/A'),
                   _infoTile("City", userInfo['city'] ?? 'N/A'),
                   _infoTile("Member Status", userInfo['memberStatus'] ?? 'N/A'),
+                  _infoTile("Traffic Light", selectedTrafficLight.toUpperCase()),
                 ],
               ),
             ),
@@ -300,4 +326,6 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
       ),
     );
   }
+
+
 }

@@ -1,4 +1,4 @@
-# TODO List for Upcoming Events Component
-
-- [x] Create the UpcomingEvents component in lib/components/eventlist.dart
-- [x] Update lib/screens/events.dart to import and use the UpcomingEvents component
+- Add state variable for selectedTrafficLight ✓
+- Create helper function getTrafficLightColor ✓
+- Wrap CircleAvatar with Container for dynamic border ✓
+- Add Traffic Light dropdown tile ✓

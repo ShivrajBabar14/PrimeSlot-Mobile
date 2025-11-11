@@ -14,7 +14,7 @@ class ProfileApprovalScreen extends StatefulWidget {
 class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
   bool showRequestField = false;
   final TextEditingController _messageController = TextEditingController();
-  String selectedTrafficLight = 'green';
+  String get selectedTrafficLight => userInfo['trafficLight'] ?? 'green';
 
   // 🧩 Dummy user data (replace with actual API response)
   final Map<String, dynamic> userInfo = {
@@ -29,6 +29,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
     'region': 'North India',
     'city': 'New Delhi',
     'memberStatus': 'Active',
+    'trafficLight': 'green',
   };
 
   void _approveProfile() {
@@ -177,7 +178,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
                   _infoTile("Region", userInfo['region'] ?? 'N/A'),
                   _infoTile("City", userInfo['city'] ?? 'N/A'),
                   _infoTile("Member Status", userInfo['memberStatus'] ?? 'N/A'),
-                  _infoTile("Traffic Light", selectedTrafficLight.toUpperCase()),
+                  _infoTile("Traffic Light", selectedTrafficLight.toUpperCase(), textColor: getTrafficLightColor(selectedTrafficLight)),
                 ],
               ),
             ),
@@ -291,7 +292,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
   }
 
   /// 🔹 Info tile builder
-  Widget _infoTile(String label, String value) {
+  Widget _infoTile(String label, String value, {Color? textColor}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
@@ -317,7 +318,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
               value,
               style: GoogleFonts.montserrat(
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: textColor ?? Colors.black87,
               ),
               textAlign: TextAlign.right,
             ),

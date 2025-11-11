@@ -19,6 +19,7 @@ class Profile extends StatelessWidget {
   static const String region = "North India";
   static const String city = "New Delhi";
   static const String memberStatus = "Active";
+  static const String trafficLight = "Green";
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +48,19 @@ class Profile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const CircleAvatar(
-              radius: 60,
-              backgroundImage: NetworkImage(avatarUrl),
-              backgroundColor: Colors.white,
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _getTrafficLightColor(trafficLight),
+                  width: 4,
+                ),
+              ),
+              child: const CircleAvatar(
+                radius: 60,
+                backgroundImage: NetworkImage(avatarUrl),
+                backgroundColor: Colors.white,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -143,6 +153,13 @@ class Profile extends StatelessWidget {
               color: Colors.green,
             ),
             const Divider(height: 1, indent: 16, endIndent: 16),
+            _buildInfoTile(
+              icon: Icons.traffic,
+              title: 'Traffic Light',
+              subtitle: trafficLight.toUpperCase(),
+              color: _getTrafficLightColor(trafficLight),
+            ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
             ListTile(
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -195,5 +212,20 @@ class Profile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getTrafficLightColor(String light) {
+    switch (light.toLowerCase()) {
+      case 'green':
+        return Colors.green;
+      case 'amber':
+        return Colors.amber;
+      case 'grey':
+        return Colors.grey;
+      case 'red':
+        return Colors.red;
+      default:
+        return Colors.green;
+    }
   }
 }

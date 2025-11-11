@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EventItinerary extends StatefulWidget {
   final Map<String, dynamic> event;
@@ -10,7 +11,8 @@ class EventItinerary extends StatefulWidget {
   State<EventItinerary> createState() => _EventItineraryState();
 }
 
-class _EventItineraryState extends State<EventItinerary> with SingleTickerProviderStateMixin {
+class _EventItineraryState extends State<EventItinerary>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -53,7 +55,10 @@ class _EventItineraryState extends State<EventItinerary> with SingleTickerProvid
             width: double.infinity,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(widget.event['image'] ?? 'https://picsum.photos/400/200?random=1'),
+                image: NetworkImage(
+                  widget.event['image'] ??
+                      'https://picsum.photos/400/200?random=1',
+                ),
                 fit: BoxFit.cover,
               ),
             ),
@@ -89,7 +94,8 @@ class _EventItineraryState extends State<EventItinerary> with SingleTickerProvid
                     ),
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
-                  indicatorColor: Colors.transparent, // Remove default indicator
+                  indicatorColor:
+                      Colors.transparent, // Remove default indicator
                   indicatorWeight: 0, // Remove default indicator weight
                   labelColor: const Color(0xFF0052CC),
                   unselectedLabelColor: Colors.grey[600],
@@ -152,7 +158,8 @@ class _EventItineraryState extends State<EventItinerary> with SingleTickerProvid
           _buildItineraryItem(
             time: '10:30 AM – 2:00 PM',
             title: '121 Round Table Conclave',
-            description: '(4 rounds x 8 members)\nVendor Empanelment\n(Pitching to Companies)\nVVIP Welcome & Visit to Stalls',
+            description:
+                '(4 rounds x 8 members)\nVendor Empanelment\n(Pitching to Companies)\nVVIP Welcome & Visit to Stalls',
           ),
           _buildItineraryItem(
             time: '1:30 PM to 2:30 PM',
@@ -213,79 +220,224 @@ class _EventItineraryState extends State<EventItinerary> with SingleTickerProvid
   }
 
   Widget _buildDetailsContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Details Cards
-          _buildDetailCard(
-            icon: Icons.calendar_today,
-            title: 'Date',
-            value: widget.event['date'] ?? '2025-11-12',
-            color: Colors.blue,
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(20.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 🔹 Date & Time in Single Card
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-          _buildDetailCard(
-            icon: Icons.access_time,
-            title: 'Time',
-            value: widget.event['time'] ?? '9:00 AM - 6:00 PM',
-            color: Colors.green,
-          ),
-          _buildDetailCard(
-            icon: Icons.location_on,
-            title: 'Address',
-            value: widget.event['address'] ?? 'Convention Center, New Delhi',
-            color: Colors.red,
-          ),
-          _buildDetailCard(
-            icon: Icons.map,
-            title: 'Location',
-            value: widget.event['location'] ?? '28.6139° N, 77.2090° E',
-            color: Colors.purple,
-          ),
-
-          const SizedBox(height: 20),
-
-          // Description
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: const Color(0xFF0052CC).withOpacity(0.1),
+                child: const Icon(Icons.calendar_today,
+                    color: Color(0xFF0052CC), size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.event['date'] ?? 'November 12, 2025',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.access_time,
+                            size: 16, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        Text(
+                          widget.event['time'] ?? '9:00 AM - 6:00 PM',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Description',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // 🔹 Venue Card with Mini Map
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.red.withOpacity(0.1),
+                    child: const Icon(Icons.location_on, color: Colors.red),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    "Venue",
+                    style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: const Color(0xFF0052CC),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                widget.event['address'] ?? 'Convention Center, New Delhi',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // 🔹 Static Google Map Preview (replace YOUR_API_KEY if needed)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.network(
+                  "https://maps.googleapis.com/maps/api/staticmap?center=${Uri.encodeComponent(widget.event['address'] ?? 'New Delhi')}&zoom=14&size=600x300&markers=color:red%7C${Uri.encodeComponent(widget.event['address'] ?? 'New Delhi')}&key=YOUR_API_KEY",
+                  fit: BoxFit.cover,
+                  height: 150,
+                  width: double.infinity,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 150,
+                    color: Colors.grey[200],
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.map, color: Colors.grey, size: 50),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              GestureDetector(
+                onTap: () {
+                  final url =
+                      'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(widget.event['address'] ?? 'Convention Center, New Delhi')}';
+                  _launchUrl(url);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                  decoration: BoxDecoration(
                     color: const Color(0xFF0052CC),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.map, color: Colors.white, size: 20),
+                      const SizedBox(width: 6),
+                      Text(
+                        "View on Google Maps",
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  widget.event['description'] ?? 'Join us for an amazing event filled with learning, networking, and opportunities.',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    color: Colors.grey[800],
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+
+        const SizedBox(height: 20),
+
+        // 🔹 Description Section
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'About the Event',
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0052CC),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                widget.event['description'] ??
+                    'Join us for an extraordinary experience of networking, learning, and collaboration with business leaders and innovators.',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  color: Colors.grey[800],
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+  // 👇 Add this helper for launching Google Maps
+  Future<void> _launchUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $url';
+    }
   }
 
   Widget _buildDetailCard({

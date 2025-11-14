@@ -122,10 +122,12 @@ class _OtpScreenState extends State<OtpScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Verified — login success')),
         );
+        // Extract token from server response
+        final serverToken = jsonResp['token'];
         // Navigate to take_profile.dart with token
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => TakeProfile(token: accessToken),
+            builder: (context) => TakeProfile(token: serverToken),
           ),
         );
       } else {

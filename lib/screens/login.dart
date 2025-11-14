@@ -39,10 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
           if (responseData['ok'] == true && responseData['exists'] == true) {
             // User verified, now send OTP
             final sendOtpUrl = Uri.parse('https://prime-slotnew.vercel.app/api/send-otp');
+            final otpBody = jsonEncode({'phone': _mobileController.text}); // Send without '91' prefix
             final otpResponse = await http.post(
               sendOtpUrl,
               headers: {'Content-Type': 'application/json'},
-              body: body,
+              body: otpBody,
             );
 
             print('Send OTP API Response: ${otpResponse.statusCode} - ${otpResponse.body}');

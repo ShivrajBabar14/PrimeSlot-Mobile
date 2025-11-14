@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../components/bottmnav.dart';
 
 class ProfileApprovalScreen extends StatefulWidget {
@@ -15,23 +17,49 @@ class ProfileApprovalScreen extends StatefulWidget {
 class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
   bool showRequestField = false;
   final TextEditingController _messageController = TextEditingController();
-  String get selectedTrafficLight => userInfo['trafficLight'] ?? 'green';
+  Map<String, dynamic> userInfo = {};
+  bool isLoading = true;
 
-  // 🧩 Dummy user data (replace with actual API response)
-  final Map<String, dynamic> userInfo = {
-    'photo':
-        'https://randomuser.me/api/portraits/men/11.jpg',
-    'name': 'John Doe',
-    'email': 'john.doe@example.com',
-    'phone': '+91 9876543210',
-    'businessName': 'Health & Wellness Co.',
-    'businessCategory': 'Healthcare',
-    'chapterName': 'Delhi Chapter',
-    'region': 'North India',
-    'city': 'New Delhi',
-    'memberStatus': 'Active',
-    'trafficLight': 'green',
-  };
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://prime-slotnew.vercel.app/api/me'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          setState(() {
+            userInfo = data['member'];
+            isLoading = false;
+          });
+        } else {
+          throw Exception('Failed to fetch profile');
+        }
+      } else {
+        throw Exception('Failed to fetch profile');
+      }
+    } catch (e) {
+      print('Error fetching profile: $e');
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load profile: $e')),
+      );
+    }
+  }
+
+  String get selectedTrafficLight => (userInfo['trafficLight'] ?? 'green').toLowerCase();
 
   void _approveProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -80,6 +108,13 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
     });
   }
 
+  String _formatPhone(String phone) {
+    if (phone.startsWith('91') && phone.length > 10) {
+      return phone.substring(2, 12); // Remove '91' and take next 10 digits
+    }
+    return phone.isNotEmpty ? phone : 'N/A';
+  }
+
   Color getTrafficLightColor(String light) {
     switch (light) {
       case 'green':
@@ -116,12 +151,14 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
         ),
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            /// 🔹 Profile Card
-            Container(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  /// 🔹 Profile Card
+                  Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -154,7 +191,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    userInfo['name'],
+                    userInfo['fullName'] ?? 'N/A',
                     style: GoogleFonts.montserrat(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -163,7 +200,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    userInfo['email'],
+                    userInfo['email'] ?? 'N/A',
                     style: GoogleFonts.montserrat(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -172,13 +209,14 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
                   const SizedBox(height: 20),
 
                   /// 🔹 Profile Info List
-                  _infoTile("Phone", userInfo['phone'] ?? 'N/A'),
+                  _infoTile("Phone", _formatPhone(userInfo['phone'] ?? '')),
                   _infoTile("Business Name", userInfo['businessName'] ?? 'N/A'),
                   _infoTile("Business Category", userInfo['businessCategory'] ?? 'N/A'),
                   _infoTile("Chapter Name", userInfo['chapterName'] ?? 'N/A'),
                   _infoTile("Region", userInfo['region'] ?? 'N/A'),
                   _infoTile("City", userInfo['city'] ?? 'N/A'),
                   _infoTile("Member Status", userInfo['memberStatus'] ?? 'N/A'),
+                  // _infoTile("User Profile", userInfo['userProfile'] ?? 'N/A'),
                   _infoTile("Traffic Light", selectedTrafficLight.toUpperCase(), textColor: getTrafficLightColor(selectedTrafficLight)),
                 ],
               ),

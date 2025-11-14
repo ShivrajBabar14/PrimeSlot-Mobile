@@ -5,7 +5,8 @@ import '../components/bottmnav.dart';
 
 class ProfileApprovalScreen extends StatefulWidget {
   final File? selectedImage;
-  const ProfileApprovalScreen({super.key, this.selectedImage});
+  final String token;
+  const ProfileApprovalScreen({super.key, this.selectedImage, required this.token});
 
   @override
   State<ProfileApprovalScreen> createState() => _ProfileApprovalScreenState();

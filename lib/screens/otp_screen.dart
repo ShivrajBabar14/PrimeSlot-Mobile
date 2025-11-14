@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sendotp_flutter_sdk/sendotp_flutter_sdk.dart';
+import 'take_profile.dart';
 
 class OtpScreen extends StatefulWidget {
   final String mobileNumber; // plain 10-digit without country prefix
@@ -121,7 +122,12 @@ class _OtpScreenState extends State<OtpScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Verified — login success')),
         );
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        // Navigate to take_profile.dart with token
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => TakeProfile(token: accessToken),
+          ),
+        );
       } else {
         final message =
             jsonResp['message'] ??

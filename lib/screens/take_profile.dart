@@ -5,14 +5,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'profile_approval_screen.dart';
 
-class TakeProfileScreen extends StatefulWidget {
-  const TakeProfileScreen({super.key});
+class TakeProfile extends StatefulWidget {
+  final String token;
+
+  const TakeProfile({super.key, required this.token});
 
   @override
-  State<TakeProfileScreen> createState() => _TakeProfileScreenState();
+  State<TakeProfile> createState() => _TakeProfileState();
 }
 
-class _TakeProfileScreenState extends State<TakeProfileScreen> {
+class _TakeProfileState extends State<TakeProfile> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -39,11 +41,11 @@ class _TakeProfileScreenState extends State<TakeProfileScreen> {
             _selectedImage = File(pickedFile.path);
           });
 
-          // Navigate to ProfileApprovalScreen with the selected image
+          // Navigate to ProfileApprovalScreen with the selected image and token
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProfileApprovalScreen(selectedImage: _selectedImage),
+              builder: (context) => ProfileApprovalScreen(selectedImage: _selectedImage, token: widget.token),
             ),
           );
         }

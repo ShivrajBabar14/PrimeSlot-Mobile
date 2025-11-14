@@ -1,4 +1,5 @@
-- Add state variable for selectedTrafficLight ✓
-- Create helper function getTrafficLightColor ✓
-- Wrap CircleAvatar with Container for dynamic border ✓
-- Add Traffic Light dropdown tile ✓
+- [x] Edit lib/screens/login.dart: Fix onPressed to use _isLoading and _getOtp.
+- [x] Edit lib/screens/otp_screen.dart: Fix initState to assign to _otpControllers with OTP_LENGTH.
+- [x] Fix collectedOtp() to use _otpControllers.
+- [x] Fix _verifyOtp to call collectedOtp().
+- [x] Fix button onPressed to use _isVerifying and _verifyOtp.

@@ -1,182 +1,181 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'take_profile.dart';
-
-class OtpScreen extends StatefulWidget {
-  final String mobileNumber;
-  const OtpScreen({super.key, required this.mobileNumber});
-
+// otp_screen.dart 
+import 'package:flutter/material.dart'; 
+import 'package:http/http.dart' as http; 
+import 'dart:convert'; 
+import 'package:google_fonts/google_fonts.dart'; 
+import 'package:sendotp_flutter_sdk/sendotp_flutter_sdk.dart'; 
+ 
+class OtpScreen extends StatefulWidget { 
+  final String mobileNumber; // plain 10-digit without country prefix 
+  final String? reqId; 
+  final bool isDemo; 
+ 
+  const OtpScreen({super.key, required this.mobileNumber, this.reqId, this.isDemo = false}); 
+ 
+  @override 
+  State<OtpScreen> createState() => _OtpScreenState(); 
+} 
+ 
+class _OtpScreenState extends State<OtpScreen> { 
+  // Use 4 digits for OTP
+  static const int OTP_LENGTH = 4;
+  late final List<TextEditingController> _otpControllers; 
+  bool _isVerifying = false; 
+  String? _reqIdLocal; 
+ 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
-}
-
-class _OtpScreenState extends State<OtpScreen> {
-  final List<TextEditingController> _otpControllers =
-      List.generate(4, (index) => TextEditingController());
-  bool _isVerifying = false;
-
-  void _verifyOtp() {
-    String otp = _otpControllers.map((e) => e.text).join();
-
-    if (otp.length != 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Please enter a valid 4-digit OTP",
-              style: GoogleFonts.montserrat(color: Colors.white)),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+  void initState() {
+    super.initState();
+    _reqIdLocal = widget.reqId;
+    _otpControllers = List.generate(OTP_LENGTH, (_) => TextEditingController());
+  }
+ 
+  @override 
+  void dispose() { 
+    for (final c in _otpControllers) c.dispose(); 
+    super.dispose(); 
+  } 
+ 
+  String collectedOtp() => _otpControllers.map((c) => c.text.trim()).join();
+ 
+  Future<void> _verifyOtp() async {
+    final otp = collectedOtp();
+    if (otp.length != OTP_LENGTH) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter full OTP')));
       return;
     }
-
-    setState(() => _isVerifying = true);
-
-    // Simulate verification delay
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() => _isVerifying = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("OTP Verified Successfully!",
-              style: GoogleFonts.montserrat(color: Colors.white)),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      // Navigate to TakeProfileScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const TakeProfileScreen()),
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FBFF),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xFFF9FBFF),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(Icons.verified_user_outlined, size: 80, color: Color(0xFF0052CC)),
-              const SizedBox(height: 20),
-
-              Text(
-                'OTP Verification',
-                style: GoogleFonts.montserrat(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Enter the OTP sent to +91 ${widget.mobileNumber}',
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                ),
-              ),
-              const SizedBox(height: 30),
-
-              // 🔹 OTP Boxes
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(4, (index) {
+ 
+    setState(() => _isVerifying = true); 
+ 
+    try { 
+      // Call SDK verifyOTP — pass reqId (if available) 
+      final body = <String, dynamic>{'otp': otp}; 
+      if (_reqIdLocal != null) body['reqId'] = _reqIdLocal; 
+      final sdkResp = await OTPWidget.verifyOTP(body); 
+      print('SDK verify response: $sdkResp'); 
+ 
+      // look for access token in common keys 
+      final accessToken = sdkResp?['access-token'] ?? 
+          sdkResp?['accessToken'] ?? 
+          sdkResp?['access_token'] ?? 
+          sdkResp?['token'] ?? 
+          sdkResp?['message']; 
+ 
+      if (accessToken == null) { 
+        // No access token — show full response to help debug 
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No access token from SDK: ${jsonEncode(sdkResp)}'))); 
+        setState(() => _isVerifying = false); 
+        return; 
+      } 
+ 
+      // send access token to your server endpoint to verify & create session 
+      final serverUrl = Uri.parse('https://prime-slotnew.vercel.app/api/verify-widget-token');
+      final res = await http.post( 
+        serverUrl, 
+        headers: {'Content-Type': 'application/json'}, 
+        body: jsonEncode({'accessToken': accessToken, 'phone': '91${widget.mobileNumber}'}), 
+      ); 
+ 
+      final jsonResp = (res.body.isNotEmpty) ? jsonDecode(res.body) : {}; 
+      print('Server verify response: ${res.statusCode} -> $jsonResp'); 
+ 
+      if (res.statusCode == 200 && (jsonResp['success'] == true || jsonResp['ok'] == true)) { 
+        // success — go to profile or home 
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verified — login success'))); 
+        Navigator.of(context).popUntil((route) => route.isFirst); // or navigate to home 
+      } else { 
+        final message = jsonResp['message'] ?? jsonResp['error'] ?? 'Server verification failed'; 
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message))); 
+      } 
+    } catch (e) { 
+      print('verify error: $e'); 
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Verification error: $e'))); 
+    } finally { 
+      setState(() => _isVerifying = false); 
+    } 
+  } 
+ 
+  Future<void> _resendOtp() async { 
+    try { 
+      final data = <String, dynamic>{}; 
+      if (_reqIdLocal != null) data['reqId'] = _reqIdLocal; 
+      // If you want to force SMS channel: data['retryChannel'] = 11; 
+      final resp = await OTPWidget.retryOTP(data); 
+      print('retryOTP resp: $resp'); 
+      final newReq = resp?['reqId'] ?? resp?['request_id'] ?? resp?['requestId']; 
+      if (newReq != null) _reqIdLocal = newReq; 
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('OTP resent'))); 
+    } catch (e) { 
+      print('retry error: $e'); 
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Resend error: $e'))); 
+    } 
+  } 
+ 
+  @override 
+  Widget build(BuildContext context) { 
+    final displayNumber = '+91 ${widget.mobileNumber}'; 
+    return Scaffold( 
+      backgroundColor: const Color(0xFFF9FBFF), 
+      appBar: AppBar( 
+        elevation: 0, 
+        backgroundColor: const Color(0xFFF9FBFF), 
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87), onPressed: () => Navigator.pop(context)), 
+      ), 
+      body: Center( 
+        child: SingleChildScrollView( 
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20), 
+          child: Column( 
+            crossAxisAlignment: CrossAxisAlignment.center, 
+            children: [ 
+              const Icon(Icons.verified_user_outlined, size: 80, color: Color(0xFF0052CC)), 
+              const SizedBox(height: 20), 
+              Text('OTP Verification', style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)), 
+              const SizedBox(height: 6), 
+              Text('Enter the OTP sent to $displayNumber', style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[700])), 
+              const SizedBox(height: 30), 
+ 
+              // OTP inputs
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: List.generate(OTP_LENGTH, (index) {
                   return SizedBox(
-                    width: 60,
-                    height: 60,
+                    width: 50,
+                    height: 50,
                     child: TextField(
                       controller: _otpControllers[index],
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
                       maxLength: 1,
                       cursorColor: const Color(0xFF0052CC),
-                      style: GoogleFonts.montserrat(
-                        color: Colors.black87,
-                        fontSize: 16,
-                      ),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFBFD8FF)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF0052CC),
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
+                      style: GoogleFonts.montserrat(color: Colors.black87, fontSize: 16),
+                      decoration: InputDecoration(counterText: '', filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
                       onChanged: (value) {
-                        if (value.isNotEmpty && index < 3) {
-                          FocusScope.of(context).nextFocus();
-                        }
+                        if (value.isNotEmpty && index < OTP_LENGTH - 1) FocusScope.of(context).nextFocus();
                       },
                     ),
                   );
                 }),
               ),
-              const SizedBox(height: 30),
-
-              // 🔹 Verify Button
+              const SizedBox(height: 30), 
+ 
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isVerifying ? null : _verifyOtp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0052CC),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 4,
-                  ),
-                  child: _isVerifying
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          'Verify OTP',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0052CC), padding: const EdgeInsets.symmetric(vertical: 14)),
+                  child: _isVerifying ? const CircularProgressIndicator(color: Colors.white) : Text('Verify OTP', style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              // 🔹 Resend Text
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  "Resend OTP",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    color: const Color(0xFF0052CC),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+              const SizedBox(height: 20), 
+              TextButton(onPressed: _resendOtp, child: Text("Resend OTP", style: GoogleFonts.montserrat(fontSize: 14, color: const Color(0xFF0052CC), fontWeight: FontWeight.w600))), 
+              const SizedBox(height: 12), 
+              if (widget.isDemo) const Text('Demo mode: OTP may be fixed in widget demo credentials', style: TextStyle(color: Colors.orange)), 
+            ], 
+          ), 
+        ), 
+      ), 
+    ); 
+  } 
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,20 +17,70 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
 
-  void _getOtp() {
+  Future<void> _getOtp() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      // Simulate API call delay (for demo)
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => _isLoading = false);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OtpScreen(mobileNumber: _mobileController.text),
-          ),
+      String phone = '91' + _mobileController.text;
+      final checkUserUrl = Uri.parse('https://prime-slotnew.vercel.app/api/check-user');
+      final body = jsonEncode({'phone': phone});
+
+      try {
+        final checkUserResponse = await http.post(
+          checkUserUrl,
+          headers: {'Content-Type': 'application/json'},
+          body: body,
         );
-      });
+
+        print('Check User API Response: ${checkUserResponse.statusCode} - ${checkUserResponse.body}');
+
+        if (checkUserResponse.statusCode == 200) {
+          final responseData = jsonDecode(checkUserResponse.body);
+          if (responseData['ok'] == true && responseData['exists'] == true) {
+            // User verified, now send OTP
+            final sendOtpUrl = Uri.parse('https://prime-slotnew.vercel.app/api/send-otp');
+            final otpResponse = await http.post(
+              sendOtpUrl,
+              headers: {'Content-Type': 'application/json'},
+              body: body,
+            );
+
+            print('Send OTP API Response: ${otpResponse.statusCode} - ${otpResponse.body}');
+
+            if (otpResponse.statusCode == 200) {
+              // Success, navigate to OTP screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OtpScreen(mobileNumber: _mobileController.text),
+                ),
+              );
+            } else {
+              // Handle send OTP error
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to send OTP: ${otpResponse.statusCode}')),
+              );
+            }
+          } else {
+            // User not verified
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('User not verified or does not exist')),
+            );
+          }
+        } else {
+          // Handle check user error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error checking user: ${checkUserResponse.statusCode}')),
+          );
+        }
+      } catch (e) {
+        print('Error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Network error: $e')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

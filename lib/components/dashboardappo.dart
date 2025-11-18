@@ -181,6 +181,7 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
                                       MaterialPageRoute(
                                         builder: (context) => Profile(
                                           scaffoldKey: GlobalKey<ScaffoldState>(),
+                                          token: '', // TODO: Pass actual token
                                         ),
                                       ),
                                     );

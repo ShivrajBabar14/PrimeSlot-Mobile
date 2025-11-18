@@ -5,7 +5,8 @@ import '../components/eventlist.dart';
 
 class Events extends StatelessWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
-  const Events({super.key, required this.scaffoldKey});
+  final String token;
+  const Events({super.key, required this.scaffoldKey, required this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +28,7 @@ class Events extends StatelessWidget {
           ),
         ),
       ),
-      drawer: Sidebar(),
+      drawer: Sidebar(token: token),
       body: const UpcomingEvents(),
     );
   }

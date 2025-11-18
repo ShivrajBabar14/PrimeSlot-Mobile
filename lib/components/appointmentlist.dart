@@ -162,6 +162,7 @@ class _AppointmentListState extends State<AppointmentList> {
                                 MaterialPageRoute(
                                   builder: (context) => Profile(
                                     scaffoldKey: GlobalKey<ScaffoldState>(),
+                                    token: '', // TODO: Pass actual token
                                   ),
                                 ),
                               );

@@ -4,8 +4,9 @@ import '../components/contactlist.dart';
 
 class Contacts extends StatelessWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
+  final String token;
 
-  const Contacts({super.key, this.scaffoldKey});
+  const Contacts({super.key, this.scaffoldKey, required this.token});
 
   @override
   Widget build(BuildContext context) {

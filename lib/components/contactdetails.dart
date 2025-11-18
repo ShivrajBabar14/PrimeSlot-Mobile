@@ -43,7 +43,7 @@ class ContactDetails extends StatelessWidget {
           ),
         ),
       ),
-      drawer: const Sidebar(),
+      drawer: const Sidebar(token: ''), // TODO: Pass actual token
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: 30),
         child: Column(

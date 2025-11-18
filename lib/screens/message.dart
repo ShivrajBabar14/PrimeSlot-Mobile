@@ -5,7 +5,8 @@ import '../components/chatlist.dart';
 
 class Message extends StatelessWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
-  const Message({super.key, required this.scaffoldKey});
+  final String token;
+  const Message({super.key, required this.scaffoldKey, required this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +28,7 @@ class Message extends StatelessWidget {
           ),
         ),
       ),
-      drawer: Sidebar(),
+      drawer: Sidebar(token: token),
       body: const ChatList(),
     );
   }

@@ -7,8 +7,9 @@ import '../components/pendingrequest.dart';
 
 class Dashboard extends StatelessWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
+  final String token;
 
-  const Dashboard({super.key, this.scaffoldKey});
+  const Dashboard({super.key, this.scaffoldKey, required this.token});
 
   @override
   Widget build(BuildContext context) {

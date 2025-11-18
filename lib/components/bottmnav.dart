@@ -19,10 +19,10 @@ class _BottomNavState extends State<BottomNav> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late final _pages = [
-    Dashboard(scaffoldKey: _scaffoldKey), // 0 - Home
-    Appointment(scaffoldKey: _scaffoldKey), // 1 - Appointments
-    Events(scaffoldKey: _scaffoldKey), // 2 - Events
-    Contacts(scaffoldKey: _scaffoldKey), // 3 - Contacts
+    Dashboard(scaffoldKey: _scaffoldKey, token: ''), // TODO: Pass actual token
+    Appointment(scaffoldKey: _scaffoldKey, token: ''), // TODO: Pass actual token
+    Events(scaffoldKey: _scaffoldKey, token: ''), // TODO: Pass actual token
+    Contacts(scaffoldKey: _scaffoldKey, token: ''), // TODO: Pass actual token
   ];
 
   Widget _buildTab({
@@ -71,6 +71,7 @@ class _BottomNavState extends State<BottomNav> {
       backgroundColor: Colors.grey[100],
       drawer: Sidebar(
         onProfileTap: () => setState(() => _selectedIndex = 3),
+        token: '', // TODO: Pass actual token
       ),
       body: IndexedStack(index: _selectedIndex, children: _pages),
 

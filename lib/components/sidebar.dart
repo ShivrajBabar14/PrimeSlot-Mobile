@@ -1,23 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../screens/profile.dart';
 import '../screens/login.dart';
 import '../components/feedback.dart';
 import '../components/showqr.dart';
 import '../services/auth_service.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends StatefulWidget {
   final VoidCallback? onProfileTap;
   final String token;
 
   const Sidebar({super.key, this.onProfileTap, required this.token});
 
   @override
+  State<Sidebar> createState() => _SidebarState();
+}
+
+class _SidebarState extends State<Sidebar> {
+  bool isLoading = true;
+  String userName = "Loading...";
+  String userEmail = "Loading...";
+  String avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://prime-slotnew.vercel.app/api/me'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          setState(() {
+            userName = data['member']['fullName'] ?? 'N/A';
+            userEmail = data['member']['email'] ?? 'N/A';
+            avatarUrl = data['member']['userProfile']['photoURL'] ?? 'https://randomuser.me/api/portraits/men/1.jpg';
+            isLoading = false;
+          });
+        } else {
+          throw Exception('Failed to fetch user data');
+        }
+      } else {
+        throw Exception('Failed to fetch user data');
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+      setState(() {
+        userName = 'Error loading';
+        userEmail = 'Error loading';
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Dummy user data
-    const String userName = "John Doe";
-    const String userEmail = "john.doe@example.com";
-    const String avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
 
     return Drawer(
       shape: const RoundedRectangleBorder(
@@ -150,7 +198,7 @@ class Sidebar extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => Profile(scaffoldKey: GlobalKey<ScaffoldState>(), token: token),
+                    builder: (_) => Profile(scaffoldKey: GlobalKey<ScaffoldState>(), token: widget.token),
                   ),
                 );
               },

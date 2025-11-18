@@ -121,14 +121,8 @@ class _PendingRequestState extends State<PendingRequest> {
 
   Future<Map<String, dynamic>?> _fetchMemberDetails(String memberId) async {
     try {
-      final token = await _getToken();
-      if (token == null) return null;
-
       final response = await http.get(
         Uri.parse('https://prime-slotnew.vercel.app/api/members/$memberId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
       );
 
       if (response.statusCode == 200) {

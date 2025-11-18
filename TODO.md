@@ -1,5 +1,5 @@
-- [x] Edit lib/screens/login.dart: Fix onPressed to use _isLoading and _getOtp.
-- [x] Edit lib/screens/otp_screen.dart: Fix initState to assign to _otpControllers with OTP_LENGTH.
-- [x] Fix collectedOtp() to use _otpControllers.
-- [x] Fix _verifyOtp to call collectedOtp().
-- [x] Fix button onPressed to use _isVerifying and _verifyOtp.
+# TODO List for API Binding Task
+
+- [x] Modify take_profile.dart to add POST /api/profile/upload API call after image pick
+- [x] Modify profile_approval_screen.dart to add POST /api/profile/approve API call on approve button click
+- [x] Test the API integrations and handle responses

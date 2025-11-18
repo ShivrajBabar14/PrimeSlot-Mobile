@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 import 'profile_approval_screen.dart';
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
+
 
 class TakeProfile extends StatefulWidget {
   final String token;
@@ -41,13 +45,19 @@ class _TakeProfileState extends State<TakeProfile> {
             _selectedImage = File(pickedFile.path);
           });
 
-          // Navigate to ProfileApprovalScreen with the selected image and token
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProfileApprovalScreen(selectedImage: _selectedImage, token: widget.token),
-            ),
-          );
+          bool success = await _uploadProfileImage();
+
+          if (success) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileApprovalScreen(
+                  selectedImage: _selectedImage,
+                  token: widget.token,
+                ),
+              ),
+            );
+          }
         }
       } else if (permissionStatus.isPermanentlyDenied) {
         // Open app settings if permission is permanently denied
@@ -85,6 +95,52 @@ class _TakeProfileState extends State<TakeProfile> {
     }
   }
 
+  Future<bool> _uploadProfileImage() async {
+    if (_selectedImage == null) return false;
+
+    try {
+      var uri = Uri.parse(
+        "https://prime-slotnew.vercel.app/api/profile/upload",
+      );
+
+      var request = http.MultipartRequest('POST', uri);
+
+      // HEADER
+      request.headers.addAll({
+        "Authorization": "Bearer ${widget.token}",
+        "Accept": "application/json",
+      });
+
+      // 🔥 Detect MIME type
+      final mimeType = lookupMimeType(_selectedImage!.path) ?? "image/jpeg";
+      final mimeSplit = mimeType.split('/');
+
+      // 🔥 Attach file with correct MIME type
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'photo',
+          _selectedImage!.path,
+          contentType: MediaType(mimeSplit[0], mimeSplit[1]), // ⭐ FIXED
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      print("UPLOAD RESPONSE BODY → $responseBody");
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print("UPLOAD FAILED → ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print("UPLOAD ERROR → $e");
+      return false;
+    }
+  }
+
   void _showImageSourceDialog() {
     showDialog(
       context: context,
@@ -100,21 +156,18 @@ class _TakeProfileState extends State<TakeProfile> {
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt, color: Color(0xFF0052CC)),
-                title: Text(
-                  "Camera",
-                  style: GoogleFonts.montserrat(),
-                ),
+                title: Text("Camera", style: GoogleFonts.montserrat()),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library, color: Color(0xFF0052CC)),
-                title: Text(
-                  "Gallery",
-                  style: GoogleFonts.montserrat(),
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Color(0xFF0052CC),
                 ),
+                title: Text("Gallery", style: GoogleFonts.montserrat()),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);

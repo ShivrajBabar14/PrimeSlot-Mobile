@@ -8,7 +8,11 @@ import '../components/bottmnav.dart';
 class ProfileApprovalScreen extends StatefulWidget {
   final File? selectedImage;
   final String token;
-  const ProfileApprovalScreen({super.key, this.selectedImage, required this.token});
+  const ProfileApprovalScreen({
+    super.key,
+    this.selectedImage,
+    required this.token,
+  });
 
   @override
   State<ProfileApprovalScreen> createState() => _ProfileApprovalScreenState();
@@ -30,9 +34,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
     try {
       final response = await http.get(
         Uri.parse('https://prime-slotnew.vercel.app/api/me'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-        },
+        headers: {'Authorization': 'Bearer ${widget.token}'},
       );
 
       if (response.statusCode == 200) {
@@ -53,29 +55,79 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load profile: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load profile: $e')));
     }
   }
 
-  String get selectedTrafficLight => (userInfo['trafficLight'] ?? 'green').toLowerCase();
+  String get selectedTrafficLight =>
+      (userInfo['trafficLight'] ?? 'green').toLowerCase();
 
-  void _approveProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          "Profile approved successfully!",
-          style: GoogleFonts.montserrat(color: Colors.white),
+  Future<void> _approveProfile() async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final response = await http.post(
+        Uri.parse('https://prime-slotnew.vercel.app/api/profile/approve'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      Navigator.pop(context); // Close loader
+
+      print("🔵 APPROVE API STATUS: ${response.statusCode}");
+      print("🟢 APPROVE API RESPONSE: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Backend returns success?
+        if (data['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Profile approved successfully!",
+                style: GoogleFonts.montserrat(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate after success
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const BottomNav()),
+          );
+        } else {
+          throw Exception("Profile approval failed");
+        }
+      } else {
+        throw Exception("Failed with status ${response.statusCode}");
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loader if error occurs
+
+      print("❌ APPROVE ERROR: $e");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Failed to approve profile: $e",
+            style: GoogleFonts.montserrat(color: Colors.white),
+          ),
+          backgroundColor: Colors.redAccent,
         ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const BottomNav()),
-    );
+      );
+    }
   }
 
   void _sendUpdateRequest() {
@@ -159,174 +211,198 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
                 children: [
                   /// 🔹 Profile Card
                   Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: getTrafficLightColor(selectedTrafficLight),
-                        width: 4,
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: getTrafficLightColor(selectedTrafficLight),
+                              width: 4,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 45,
+                            backgroundImage: widget.selectedImage != null
+                                ? FileImage(widget.selectedImage!)
+                                : NetworkImage(userInfo['photo']),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          userInfo['fullName'] ?? 'N/A',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          userInfo['email'] ?? 'N/A',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        /// 🔹 Profile Info List
+                        _infoTile(
+                          "Phone",
+                          _formatPhone(userInfo['phone'] ?? ''),
+                        ),
+                        _infoTile(
+                          "Business Name",
+                          userInfo['businessName'] ?? 'N/A',
+                        ),
+                        _infoTile(
+                          "Business Category",
+                          userInfo['businessCategory'] ?? 'N/A',
+                        ),
+                        _infoTile(
+                          "Chapter Name",
+                          userInfo['chapterName'] ?? 'N/A',
+                        ),
+                        _infoTile("Region", userInfo['region'] ?? 'N/A'),
+                        _infoTile("City", userInfo['city'] ?? 'N/A'),
+                        _infoTile(
+                          "Member Status",
+                          userInfo['memberStatus'] ?? 'N/A',
+                        ),
+                        // _infoTile("User Profile", userInfo['userProfile'] ?? 'N/A'),
+                        _infoTile(
+                          "Traffic Light",
+                          selectedTrafficLight.toUpperCase(),
+                          textColor: getTrafficLightColor(selectedTrafficLight),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  /// 🔹 Action Buttons
+                  if (!showRequestField) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _approveProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0052CC),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          elevation: 5,
+                        ),
+                        child: Text(
+                          "Approve Profile",
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
-                    child: CircleAvatar(
-                      radius: 45,
-                      backgroundImage: widget.selectedImage != null
-                          ? FileImage(widget.selectedImage!)
-                          : NetworkImage(userInfo['photo']),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () =>
+                            setState(() => showRequestField = true),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF0052CC)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: Text(
+                          "Request Profile Update",
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF0052CC),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    userInfo['fullName'] ?? 'N/A',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    userInfo['email'] ?? 'N/A',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  ],
 
-                  /// 🔹 Profile Info List
-                  _infoTile("Phone", _formatPhone(userInfo['phone'] ?? '')),
-                  _infoTile("Business Name", userInfo['businessName'] ?? 'N/A'),
-                  _infoTile("Business Category", userInfo['businessCategory'] ?? 'N/A'),
-                  _infoTile("Chapter Name", userInfo['chapterName'] ?? 'N/A'),
-                  _infoTile("Region", userInfo['region'] ?? 'N/A'),
-                  _infoTile("City", userInfo['city'] ?? 'N/A'),
-                  _infoTile("Member Status", userInfo['memberStatus'] ?? 'N/A'),
-                  // _infoTile("User Profile", userInfo['userProfile'] ?? 'N/A'),
-                  _infoTile("Traffic Light", selectedTrafficLight.toUpperCase(), textColor: getTrafficLightColor(selectedTrafficLight)),
+                  /// 🔹 Update Request Field
+                  if (showRequestField) ...[
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _messageController,
+                      maxLines: 4,
+                      cursorColor: const Color(0xFF0052CC),
+                      style: GoogleFonts.montserrat(
+                        color: Colors.black87,
+                        fontSize: 16,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: "Type your message here...",
+                        hintStyle: GoogleFonts.montserrat(
+                          color: Colors.grey[500],
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFD6E4FF),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF0052CC),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _sendUpdateRequest,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0052CC),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: Text(
+                          "Send Request",
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-
-            const SizedBox(height: 30),
-
-            /// 🔹 Action Buttons
-            if (!showRequestField) ...[
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _approveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0052CC),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 5,
-                  ),
-                  child: Text(
-                    "Approve Profile",
-                    style: GoogleFonts.montserrat(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => setState(() => showRequestField = true),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF0052CC)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: Text(
-                    "Request Profile Update",
-                    style: GoogleFonts.montserrat(
-                      color: const Color(0xFF0052CC),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-
-            /// 🔹 Update Request Field
-            if (showRequestField) ...[
-              const SizedBox(height: 20),
-              TextField(
-                controller: _messageController,
-                maxLines: 4,
-                cursorColor: const Color(0xFF0052CC),
-                style: GoogleFonts.montserrat(
-                  color: Colors.black87,
-                  fontSize: 16,
-                ),
-                decoration: InputDecoration(
-                  hintText: "Type your message here...",
-                  hintStyle: GoogleFonts.montserrat(color: Colors.grey[500]),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFD6E4FF)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF0052CC),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _sendUpdateRequest,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0052CC),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: Text(
-                    "Send Request",
-                    style: GoogleFonts.montserrat(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 
@@ -366,6 +442,4 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
       ),
     );
   }
-
-
 }

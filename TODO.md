@@ -1,1 +1,2 @@
 - [x] Fetch current user memberId from /api/me and use it to match with aId/bId in appointmentlist.dart
+- [x] Update profile.dart to accept optional memberId parameter and fetch data from /api/members/{memberId} if provided, remove QR code button when viewing other member's profile

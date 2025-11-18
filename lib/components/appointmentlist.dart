@@ -148,6 +148,7 @@ class _AppointmentListState extends State<AppointmentList> {
 
                 processedAppointments.add({
                   'id': meeting['meetingId'],
+                  'memberId': memberIdToFetch,
                   'title': meeting['topic'] ?? 'No topic',
                   'fullName': memberDetails['fullName'] ?? 'Unknown User',
                   'appointmentDate': formattedDate,
@@ -335,16 +336,20 @@ class _AppointmentListState extends State<AppointmentList> {
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Profile(
-                                    scaffoldKey: GlobalKey<ScaffoldState>(),
-                                    token: '', // TODO: Pass actual token
+                            onTap: () async {
+                              final token = await _getToken();
+                              if (token != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Profile(
+                                      scaffoldKey: GlobalKey<ScaffoldState>(),
+                                      token: token,
+                                      memberId: appointment['memberId'] != null ? appointment['memberId'].toString() : null,
+                                    ),
                                   ),
-                                ),
-                              );
+                                );
+                              }
                             },
                             child: CircleAvatar(
                               radius: 16,

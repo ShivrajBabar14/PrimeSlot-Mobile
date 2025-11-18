@@ -8,8 +8,9 @@ import '../components/sidebar.dart';
 class Profile extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   final String token;
+  final String? memberId;
 
-  const Profile({super.key, required this.scaffoldKey, required this.token});
+  const Profile({super.key, required this.scaffoldKey, required this.token, this.memberId});
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -29,8 +30,12 @@ class _ProfileState extends State<Profile> {
 
   Future<void> _fetchProfile() async {
     try {
+      final url = widget.memberId != null
+          ? 'https://prime-slotnew.vercel.app/api/members/${widget.memberId}'
+          : 'https://prime-slotnew.vercel.app/api/me';
+
       final response = await http.get(
-        Uri.parse('https://prime-slotnew.vercel.app/api/me'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -38,12 +43,15 @@ class _ProfileState extends State<Profile> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          setState(() {
-            member = data['member'];
-            photoURL = data['member']['userProfile']['photoURL'] ?? '';
-            // Extract memberId from photoURL path
-            String photoURLTemp = data['member']['userProfile']['photoURL'] ?? '';
+        final memberData = data['member'] ?? data;
+        setState(() {
+          member = memberData;
+          photoURL = memberData['userProfile']?['photoURL'] ?? '';
+          // Extract memberId from photoURL path or use provided memberId
+          if (widget.memberId != null) {
+            memberId = widget.memberId!;
+          } else {
+            String photoURLTemp = memberData['userProfile']?['photoURL'] ?? '';
             if (photoURLTemp.isNotEmpty) {
               // Extract memberId from URL like: https://storage.googleapis.com/prime-slot-35cd9.firebasestorage.app/profiles/-Oe0oEDnI4EG4PUiQ4BB/profile_1763454437759.png
               RegExp regExp = RegExp(r'/profiles/([^/]+)/');
@@ -52,11 +60,9 @@ class _ProfileState extends State<Profile> {
                 memberId = match.group(1)!;
               }
             }
-            isLoading = false;
-          });
-        } else {
-          throw Exception('Failed to fetch profile');
-        }
+          }
+          isLoading = false;
+        });
       } else {
         throw Exception('Failed to fetch profile');
       }
@@ -196,53 +202,7 @@ class _ProfileState extends State<Profile> {
                     ],
                   ),
 
-                  const SizedBox(height: 10),
 
-                  // 🔹 Show QR Code Button
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                        backgroundColor: mainBlue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 3,
-                      ),
-                      onPressed: () {
-                        // Create JSON data with all profile information
-                        final profileData = {
-                          'name': member['fullName'] ?? 'N/A',
-                          'email': member['email'] ?? 'N/A',
-                          'mobile': member['phone'] ?? 'N/A',
-                          'avatarUrl': photoURL,
-                          'businessName': member['businessName'] ?? 'N/A',
-                          'businessCategory': member['businessCategory'] ?? 'N/A',
-                          'chapterName': member['chapterName'] ?? 'N/A',
-                          'region': member['region'] ?? 'N/A',
-                          'city': member['city'] ?? 'N/A',
-                          'memberStatus': member['memberStatus'] ?? 'N/A',
-                          'trafficLight': member['trafficLight'] ?? 'green',
-                        };
-                        final jsonData = profileData.toString();
-
-                        showDialog(
-                          context: context,
-                          builder: (context) => ShowQrDialog(data: memberId, name: member['fullName'] ?? 'N/A'),
-                        );
-                      },
-                      icon: const Icon(Icons.qr_code_2, color: Colors.white),
-                      label: Text(
-                        "Show QR Code",
-                        style: GoogleFonts.montserrat(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

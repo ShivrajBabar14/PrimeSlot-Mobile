@@ -99,38 +99,6 @@ class ShowQrDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-                /// Member ID Display
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Member ID',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        data,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-
                 /// Subtext
                 Text(
                   'Show this QR code to connect',

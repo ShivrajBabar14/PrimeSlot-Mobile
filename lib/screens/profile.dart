@@ -19,6 +19,7 @@ class _ProfileState extends State<Profile> {
   bool isLoading = true;
   Map<String, dynamic> member = {};
   String photoURL = '';
+  String memberId = '';
 
   @override
   void initState() {
@@ -41,6 +42,16 @@ class _ProfileState extends State<Profile> {
           setState(() {
             member = data['member'];
             photoURL = data['member']['userProfile']['photoURL'] ?? '';
+            // Extract memberId from photoURL path
+            String photoURLTemp = data['member']['userProfile']['photoURL'] ?? '';
+            if (photoURLTemp.isNotEmpty) {
+              // Extract memberId from URL like: https://storage.googleapis.com/prime-slot-35cd9.firebasestorage.app/profiles/-Oe0oEDnI4EG4PUiQ4BB/profile_1763454437759.png
+              RegExp regExp = RegExp(r'/profiles/([^/]+)/');
+              Match? match = regExp.firstMatch(photoURLTemp);
+              if (match != null && match.groupCount >= 1) {
+                memberId = match.group(1)!;
+              }
+            }
             isLoading = false;
           });
         } else {
@@ -218,7 +229,7 @@ class _ProfileState extends State<Profile> {
 
                         showDialog(
                           context: context,
-                          builder: (context) => ShowQrDialog(data: jsonData, name: member['fullName'] ?? 'N/A'),
+                          builder: (context) => ShowQrDialog(data: memberId, name: member['fullName'] ?? 'N/A'),
                         );
                       },
                       icon: const Icon(Icons.qr_code_2, color: Colors.white),

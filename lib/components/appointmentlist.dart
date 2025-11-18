@@ -30,6 +30,14 @@ class _AppointmentListState extends State<AppointmentList> {
     _fetchMeetings();
   }
 
+  @override
+  void didUpdateWidget(covariant AppointmentList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedDate != widget.selectedDate) {
+      _fetchMeetings();
+    }
+  }
+
   Future<String?> _getToken() async {
     try {
       final prefs = await SharedPreferences.getInstance();

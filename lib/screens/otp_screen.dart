@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sendotp_flutter_sdk/sendotp_flutter_sdk.dart';
 import 'take_profile.dart';
 import '../components/bottmnav.dart';
+import '../services/auth_service.dart';
 
 class OtpScreen extends StatefulWidget {
   final String mobileNumber; // plain 10-digit without country prefix
@@ -142,11 +143,14 @@ class _OtpScreenState extends State<OtpScreen> {
           final userProfile = meJsonResp['member']['userProfile'];
           final isApproved = userProfile['approved'] == true;
 
+          // Save token to shared preferences
+          await AuthService.saveToken(serverToken);
+
           if (isApproved) {
             // Navigate to BottomNav if profile is approved
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (context) => const BottomNav(),
+                builder: (context) => BottomNav(token: serverToken),
               ),
             );
           } else {

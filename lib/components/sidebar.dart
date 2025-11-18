@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../screens/profile.dart';
+import '../screens/login.dart';
 import '../components/feedback.dart';
 import '../components/showqr.dart';
+import '../services/auth_service.dart';
 
 class Sidebar extends StatelessWidget {
   final VoidCallback? onProfileTap;
@@ -189,8 +191,13 @@ class Sidebar extends StatelessWidget {
               title: 'Logout',
               iconColor: Colors.redAccent,
               textColor: Colors.redAccent,
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
+                // Clear token and navigate to login
+                await AuthService.removeToken();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
               },
             ),
 

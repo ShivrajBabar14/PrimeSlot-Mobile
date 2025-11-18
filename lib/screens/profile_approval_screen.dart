@@ -105,7 +105,7 @@ class _ProfileApprovalScreenState extends State<ProfileApprovalScreen> {
           // Navigate after success
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const BottomNav()),
+            MaterialPageRoute(builder: (context) => BottomNav(token: widget.token)),
           );
         } else {
           throw Exception("Profile approval failed");

@@ -8,7 +8,8 @@ import '../components/scanqr.dart';
 import '../components/sidebar.dart';
 
 class BottomNav extends StatefulWidget {
-  const BottomNav({super.key});
+  final String token;
+  const BottomNav({super.key, required this.token});
 
   @override
   State<BottomNav> createState() => _BottomNavState();
@@ -19,10 +20,10 @@ class _BottomNavState extends State<BottomNav> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late final _pages = [
-    Dashboard(scaffoldKey: _scaffoldKey, token: ''), // TODO: Pass actual token
-    Appointment(scaffoldKey: _scaffoldKey, token: ''), // TODO: Pass actual token
-    Events(scaffoldKey: _scaffoldKey, token: ''), // TODO: Pass actual token
-    Contacts(scaffoldKey: _scaffoldKey, token: ''), // TODO: Pass actual token
+    Dashboard(scaffoldKey: _scaffoldKey, token: widget.token),
+    Appointment(scaffoldKey: _scaffoldKey, token: widget.token),
+    Events(scaffoldKey: _scaffoldKey, token: widget.token),
+    Contacts(scaffoldKey: _scaffoldKey, token: widget.token),
   ];
 
   Widget _buildTab({
@@ -71,7 +72,7 @@ class _BottomNavState extends State<BottomNav> {
       backgroundColor: Colors.grey[100],
       drawer: Sidebar(
         onProfileTap: () => setState(() => _selectedIndex = 3),
-        token: '', // TODO: Pass actual token
+        token: widget.token,
       ),
       body: IndexedStack(index: _selectedIndex, children: _pages),
 

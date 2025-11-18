@@ -151,23 +151,17 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
                     // Parse busy slots from response
                     if (response.statusCode == 200) {
                       final responseData = jsonDecode(response.body);
-                      final busyList = responseData['busy'] as List? ?? [];
-                      busySlots = busyList.map((busy) {
-                        int startTimestamp = busy['start'];
-                        int endTimestamp = busy['end'];
+                      final eventsList = responseData['events'] as List? ?? [];
+                      busySlots = eventsList.map((event) {
+                        String startStr = event['start'];
+                        String endStr = event['end'];
 
-                        // Detect if timestamp is in seconds or milliseconds
-                        // Timestamps before 1e10 are likely in seconds, others in milliseconds
-                        if (startTimestamp < 10000000000) {
-                          startTimestamp *= 1000; // Convert seconds to milliseconds
-                        }
-                        if (endTimestamp < 10000000000) {
-                          endTimestamp *= 1000; // Convert seconds to milliseconds
-                        }
+                        DateTime start = DateTime.parse(startStr);
+                        DateTime end = DateTime.parse(endStr);
 
                         return {
-                          'start': DateTime.fromMillisecondsSinceEpoch(startTimestamp),
-                          'end': DateTime.fromMillisecondsSinceEpoch(endTimestamp),
+                          'start': start,
+                          'end': end,
                         };
                       }).toList();
                     }

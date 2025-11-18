@@ -289,14 +289,14 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
       hour = 0;
     }
 
-    // Create DateTime for the slot
-    final slotTime = DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day, hour, minute);
+    // Create DateTime for the slot start and end (1-hour slot)
+    final slotStart = DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day, hour, minute);
+    final slotEnd = slotStart.add(const Duration(hours: 1));
 
-    // Check if this slot overlaps with any busy period
+    // Check if any meeting starts within this slot's time range
     for (final busy in busySlots) {
-      final start = busy['start']!;
-      final end = busy['end']!;
-      if (slotTime.isAtSameMomentAs(start) || (slotTime.isAfter(start) && slotTime.isBefore(end))) {
+      final meetingStart = busy['start']!;
+      if (meetingStart.isAtSameMomentAs(slotStart) || (meetingStart.isAfter(slotStart) && meetingStart.isBefore(slotEnd))) {
         return true;
       }
     }

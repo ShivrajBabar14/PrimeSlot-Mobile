@@ -382,6 +382,7 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
         builder: (context) => MeetingRequest(
           selectedDate: _selectedDay!,
           selectedTime: slot,
+          scannedUserData: widget.scannedUserData,
         ),
       ),
     );

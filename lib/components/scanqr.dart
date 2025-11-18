@@ -67,13 +67,13 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Scanned Data:',
+                'Member ID:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
                 data,
-                style: const TextStyle(fontFamily: 'monospace'),
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 16),
               ),
             ],
           ),

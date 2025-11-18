@@ -23,6 +23,7 @@ class _SidebarState extends State<Sidebar> {
   String userName = "Loading...";
   String userEmail = "Loading...";
   String avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
+  String memberId = "";
 
   @override
   void initState() {
@@ -46,6 +47,18 @@ class _SidebarState extends State<Sidebar> {
             userName = data['member']['fullName'] ?? 'N/A';
             userEmail = data['member']['email'] ?? 'N/A';
             avatarUrl = data['member']['userProfile']['photoURL'] ?? 'https://randomuser.me/api/portraits/men/1.jpg';
+            // Extract memberId from photoURL path
+            String photoURL = data['member']['userProfile']['photoURL'] ?? '';
+            if (photoURL.isNotEmpty) {
+              // Extract memberId from URL like: https://storage.googleapis.com/prime-slot-35cd9.firebasestorage.app/profiles/-Oe0oEDnI4EG4PUiQ4BB/profile_1763454437759.png
+              RegExp regExp = RegExp(r'/profiles/([^/]+)/');
+              Match? match = regExp.firstMatch(photoURL);
+              if (match != null && match.groupCount >= 1) {
+                memberId = match.group(1)!;
+              }
+            }
+            print('Fetched memberId: $memberId');
+            print('Full member data: ${data['member']}');
             isLoading = false;
           });
         } else {
@@ -154,7 +167,7 @@ class _SidebarState extends State<Sidebar> {
                               showDialog(
                                 context: context,
                                 builder: (context) => ShowQrDialog(
-                                  data: userEmail,
+                                  data: memberId,
                                   name: userName,
                                 ),
                               );

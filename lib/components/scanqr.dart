@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'meetingcalender.dart';
 
 class ScanQR extends StatefulWidget {
-  const ScanQR({super.key});
+  final String token;
+  const ScanQR({super.key, required this.token});
 
   @override
   State<ScanQR> createState() => _ScanQRState();
@@ -14,6 +17,7 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
   late final Animation<double> _anim;
   bool _isProcessing = false;
   String? _scannedData;
+  String? _myMemberId;
 
   static const double _boxSize = 220.0;
   static const double _borderRadius = 20.0;
@@ -27,6 +31,36 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
     )..repeat(reverse: true);
 
     _anim = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _fetchMyMemberId();
+  }
+
+  Future<void> _fetchMyMemberId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://prime-slotnew.vercel.app/api/me'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          String photoURL = data['member']['userProfile']['photoURL'] ?? '';
+          if (photoURL.isNotEmpty) {
+            RegExp regExp = RegExp(r'/profiles/([^/]+)/');
+            Match? match = regExp.firstMatch(photoURL);
+            if (match != null && match.groupCount >= 1) {
+              setState(() {
+                _myMemberId = match.group(1)!;
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching member ID: $e');
+    }
   }
 
   @override
@@ -89,13 +123,49 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
               child: const Text('Scan Again'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => MeetingCalendar(scannedUserData: data),
-                  ),
-                );
+
+                // Call the availability API
+                if (_myMemberId != null) {
+                  try {
+                    final response = await http.post(
+                      Uri.parse('https://prime-slotnew.vercel.app/api/members/availability'),
+                      headers: {
+                        'Authorization': 'Bearer ${widget.token}',
+                        'Content-Type': 'application/json',
+                      },
+                      body: jsonEncode({
+                        'aId': _myMemberId,
+                        'bId': data,
+                      }),
+                    );
+
+                    print('Availability API Response: ${response.body}');
+
+                    // Navigate to MeetingCalendar after API call
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => MeetingCalendar(scannedUserData: data),
+                      ),
+                    );
+                  } catch (e) {
+                    print('Error calling availability API: $e');
+                    // Still navigate even if API fails
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => MeetingCalendar(scannedUserData: data),
+                      ),
+                    );
+                  }
+                } else {
+                  // Navigate even if member ID is not available
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => MeetingCalendar(scannedUserData: data),
+                    ),
+                  );
+                }
               },
               child: const Text('Schedule Meeting'),
             ),

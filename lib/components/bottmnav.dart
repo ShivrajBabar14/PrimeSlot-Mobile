@@ -93,7 +93,7 @@ class _BottomNavState extends State<BottomNav> {
         ),
         child: IconButton(
           icon: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 30),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScanQR())),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ScanQR(token: widget.token))),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

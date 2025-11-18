@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sendotp_flutter_sdk/sendotp_flutter_sdk.dart';
 import 'take_profile.dart';
+import '../components/bottmnav.dart';
 
 class OtpScreen extends StatefulWidget {
   final String mobileNumber; // plain 10-digit without country prefix
@@ -124,12 +125,46 @@ class _OtpScreenState extends State<OtpScreen> {
         );
         // Extract token from server response
         final serverToken = jsonResp['token'];
-        // Navigate to take_profile.dart with token
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => TakeProfile(token: serverToken),
-          ),
+
+        // Call /api/me to check profile approval status
+        final meUrl = Uri.parse('https://prime-slotnew.vercel.app/api/me');
+        final meRes = await http.get(
+          meUrl,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $serverToken',
+          },
         );
+        final meJsonResp = meRes.body.isNotEmpty ? jsonDecode(meRes.body) : {};
+        print('API /me response: ${meRes.statusCode} -> $meJsonResp');
+
+        if (meRes.statusCode == 200 && meJsonResp['success'] == true) {
+          final userProfile = meJsonResp['member']['userProfile'];
+          final isApproved = userProfile['approved'] == true;
+
+          if (isApproved) {
+            // Navigate to BottomNav if profile is approved
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const BottomNav(),
+              ),
+            );
+          } else {
+            // Navigate to TakeProfile if profile is not approved
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => TakeProfile(token: serverToken),
+              ),
+            );
+          }
+        } else {
+          // If /api/me fails, default to TakeProfile
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => TakeProfile(token: serverToken),
+            ),
+          );
+        }
       } else {
         final message =
             jsonResp['message'] ??

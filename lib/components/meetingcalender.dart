@@ -5,8 +5,13 @@ import 'meetingrequest.dart';
 
 class MeetingCalendar extends StatefulWidget {
   final String scannedUserData;
+  final List<Map<String, DateTime>> busySlots;
 
-  const MeetingCalendar({super.key, required this.scannedUserData});
+  const MeetingCalendar({
+    super.key,
+    required this.scannedUserData,
+    this.busySlots = const [],
+  });
 
   @override
   State<MeetingCalendar> createState() => _MeetingCalendarState();
@@ -31,9 +36,10 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
   };
 
   final List<String> _allTimeSlots = [
-    '9:00 AM', '10:00 AM', '11:00 AM',
-    '12:00 PM', '1:00 PM', '2:00 PM',
-    '3:00 PM', '4:00 PM', '5:00 PM',
+    '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM',
+    '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM',
+    '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM',
+    '8:00 PM', '9:00 PM', '10:00 PM',
   ];
 
   @override
@@ -166,6 +172,13 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
     final currentUserBooked = _currentUserBookedSlots[_selectedDay] ?? [];
     final scannedUserBooked = _scannedUserBookedSlots[_selectedDay] ?? [];
 
+    // Get busy slots for the selected day
+    final busySlotsForDay = widget.busySlots.where((busy) {
+      return busy['start']!.year == _selectedDay!.year &&
+             busy['start']!.month == _selectedDay!.month &&
+             busy['start']!.day == _selectedDay!.day;
+    }).toList();
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -213,13 +226,15 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
                   final slot = _allTimeSlots[index];
                   final isCurrentUserBooked = currentUserBooked.contains(slot);
                   final isScannedUserBooked = scannedUserBooked.contains(slot);
-                  final isAvailable = !isCurrentUserBooked && !isScannedUserBooked;
+                  final isBusyFromAPI = _isSlotBusy(slot, busySlotsForDay);
+                  final isAvailable = !isCurrentUserBooked && !isScannedUserBooked && !isBusyFromAPI;
 
                   return _buildCompactSlotCard(
                     slot,
                     isAvailable,
                     isCurrentUserBooked,
                     isScannedUserBooked,
+                    isBusyFromAPI,
                   );
                 },
               );
@@ -256,12 +271,45 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
     );
   }
 
+  // Helper method to check if a slot is busy based on API data
+  bool _isSlotBusy(String slot, List<Map<String, DateTime>> busySlots) {
+    // Parse the slot time (e.g., "10:00 AM" -> hour: 10, minute: 0)
+    final timeParts = slot.split(' ');
+    final timeStr = timeParts[0];
+    final period = timeParts[1]; // AM/PM
+
+    final hourMinute = timeStr.split(':');
+    int hour = int.parse(hourMinute[0]);
+    final minute = int.parse(hourMinute[1]);
+
+    // Convert to 24-hour format
+    if (period == 'PM' && hour != 12) {
+      hour += 12;
+    } else if (period == 'AM' && hour == 12) {
+      hour = 0;
+    }
+
+    // Create DateTime for the slot
+    final slotTime = DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day, hour, minute);
+
+    // Check if this slot overlaps with any busy period
+    for (final busy in busySlots) {
+      final start = busy['start']!;
+      final end = busy['end']!;
+      if (slotTime.isAtSameMomentAs(start) || (slotTime.isAfter(start) && slotTime.isBefore(end))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // NEW: compact slot card (previously missing)
   Widget _buildCompactSlotCard(
     String slot,
     bool isAvailable,
     bool isCurrentUserBooked,
     bool isScannedUserBooked,
+    bool isBusyFromAPI,
   ) {
     Color statusColor;
     Gradient gradient;
@@ -284,6 +332,12 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
         begin: Alignment.topLeft, end: Alignment.bottomRight,
       );
       statusColor = Colors.orange.shade700;
+    } else if (isBusyFromAPI) {
+      gradient = const LinearGradient(
+        colors: [Color(0xFFFFCDD2), Color(0xFFE57373)],
+        begin: Alignment.topLeft, end: Alignment.bottomRight,
+      );
+      statusColor = Colors.red.shade700;
     } else {
       gradient = const LinearGradient(
         colors: [Color(0xFFFFCDD2), Color(0xFFFFAB91)],

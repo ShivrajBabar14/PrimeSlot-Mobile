@@ -124,9 +124,14 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.of(context).pop(); // Close dialog
+                // Get navigator before closing dialog
+                final navigator = Navigator.of(context);
 
-                // Call the availability API
+                // Close dialog first
+                navigator.pop();
+
+                // Call the availability API after dialog is closed
+                List<Map<String, DateTime>> busySlots = [];
                 if (_myMemberId != null) {
                   try {
                     final response = await http.post(
@@ -136,33 +141,66 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
                         'Content-Type': 'application/json',
                       },
                       body: jsonEncode({
-                        'aId': _myMemberId,
-                        'bId': data,
+                        'aid': _myMemberId,
+                        'bid': data,
                       }),
                     );
 
                     print('Availability API Response: ${response.body}');
 
+                    // Parse busy slots from response
+                    if (response.statusCode == 200) {
+                      final responseData = jsonDecode(response.body);
+                      final busyList = responseData['busy'] as List? ?? [];
+                      busySlots = busyList.map((busy) {
+                        int startTimestamp = busy['start'];
+                        int endTimestamp = busy['end'];
+
+                        // Detect if timestamp is in seconds or milliseconds
+                        // Timestamps before 1e10 are likely in seconds, others in milliseconds
+                        if (startTimestamp < 10000000000) {
+                          startTimestamp *= 1000; // Convert seconds to milliseconds
+                        }
+                        if (endTimestamp < 10000000000) {
+                          endTimestamp *= 1000; // Convert seconds to milliseconds
+                        }
+
+                        return {
+                          'start': DateTime.fromMillisecondsSinceEpoch(startTimestamp),
+                          'end': DateTime.fromMillisecondsSinceEpoch(endTimestamp),
+                        };
+                      }).toList();
+                    }
+
                     // Navigate to MeetingCalendar after API call
-                    Navigator.of(context).push(
+                    navigator.push(
                       MaterialPageRoute(
-                        builder: (context) => MeetingCalendar(scannedUserData: data),
+                        builder: (context) => MeetingCalendar(
+                          scannedUserData: data,
+                          busySlots: busySlots,
+                        ),
                       ),
                     );
                   } catch (e) {
                     print('Error calling availability API: $e');
                     // Still navigate even if API fails
-                    Navigator.of(context).push(
+                    navigator.push(
                       MaterialPageRoute(
-                        builder: (context) => MeetingCalendar(scannedUserData: data),
+                        builder: (context) => MeetingCalendar(
+                          scannedUserData: data,
+                          busySlots: busySlots,
+                        ),
                       ),
                     );
                   }
                 } else {
                   // Navigate even if member ID is not available
-                  Navigator.of(context).push(
+                  navigator.push(
                     MaterialPageRoute(
-                      builder: (context) => MeetingCalendar(scannedUserData: data),
+                      builder: (context) => MeetingCalendar(
+                        scannedUserData: data,
+                        busySlots: busySlots,
+                      ),
                     ),
                   );
                 }

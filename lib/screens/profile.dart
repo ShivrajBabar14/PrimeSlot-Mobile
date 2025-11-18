@@ -1,30 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../components/showqr.dart';
 import '../components/sidebar.dart';
 
-class Profile extends StatelessWidget {
+class Profile extends StatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
+  final String token;
 
-  const Profile({super.key, required this.scaffoldKey});
+  const Profile({super.key, required this.scaffoldKey, required this.token});
 
-  // Dummy data
-  static const name = "John Doe";
-  static const email = "john.doe@example.com";
-  static const mobile = "+1 (123) 456-7890";
-  static const avatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
-  static const businessName = "Health & Wellness Co.";
-  static const businessCategory = "Healthcare";
-  static const chapterName = "Delhi Chapter";
-  static const region = "North India";
-  static const city = "New Delhi";
-  static const memberStatus = "Active";
-  static const trafficLight = "green";
+  @override
+  State<Profile> createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
+  bool isLoading = true;
+  Map<String, dynamic> member = {};
+  String photoURL = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://prime-slotnew.vercel.app/api/me'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          setState(() {
+            member = data['member'];
+            photoURL = data['member']['userProfile']['photoURL'] ?? '';
+            isLoading = false;
+          });
+        } else {
+          throw Exception('Failed to fetch profile');
+        }
+      } else {
+        throw Exception('Failed to fetch profile');
+      }
+    } catch (e) {
+      print('Error fetching profile: $e');
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load profile: $e')),
+      );
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     final Color mainBlue = const Color(0xFF0052CC);
-    final trafficColor = _getTrafficLightColor(trafficLight);
+    final trafficColor = _getTrafficLightColor(member['trafficLight']?.toString().toLowerCase() ?? 'green');
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F5FB),
@@ -43,155 +84,157 @@ class Profile extends StatelessWidget {
           ),
         ),
       ),
-      drawer: const Sidebar(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 30),
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-
-            // 🔹 Profile Card
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-              decoration: BoxDecoration(
-                // color: Colors.white,
-                // borderRadius: BorderRadius.circular(20),
-                // boxShadow: [
-                //   BoxShadow(
-                //     color: Colors.black.withOpacity(0.1),
-                //     blurRadius: 10,
-                //     offset: const Offset(0, 5),
-                //   ),
-                // ],
-              ),
+      drawer: Sidebar(token: widget.token),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 30),
               child: Column(
                 children: [
+                  const SizedBox(height: 8),
+
+                  // 🔹 Profile Card
                   Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: trafficColor,
-                        width: 3,
-                      ),
+                      // color: Colors.white,
+                      // borderRadius: BorderRadius.circular(20),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.black.withOpacity(0.1),
+                      //     blurRadius: 10,
+                      //     offset: const Offset(0, 5),
+                      //   ),
+                      // ],
                     ),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: const NetworkImage(avatarUrl),
-                      backgroundColor: Colors.grey[300],
+                    child: Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: trafficColor,
+                              width: 3,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage: NetworkImage(photoURL.isNotEmpty ? photoURL : 'https://randomuser.me/api/portraits/men/1.jpg'),
+                            backgroundColor: Colors.grey[300],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          member['fullName'] ?? 'N/A',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          member['email'] ?? 'N/A',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "Status: ${member['memberStatus'] ?? 'N/A'}",
+                            style: GoogleFonts.montserrat(
+                              color: Colors.green,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+
+                  const SizedBox(height: 0),
+
+                  // 🔹 Personal Info Card
+                  _buildSectionCard(
+                    title: "Personal Information",
+                    children: [
+                      _buildTile(Icons.phone_android, "Mobile", member['phone'] ?? 'N/A', Colors.green),
+                      _buildTile(Icons.location_city, "City", member['city'] ?? 'N/A', Colors.indigo),
+                      _buildTile(Icons.location_on, "Region", member['region'] ?? 'N/A', Colors.red),
+                    ],
+                  ),
+
+                  // 🔹 Business Info Card
+                  _buildSectionCard(
+                    title: "Business Information",
+                    children: [
+                      _buildTile(Icons.business, "Business Name", member['businessName'] ?? 'N/A', Colors.blue),
+                      _buildTile(Icons.category, "Business Category", member['businessCategory'] ?? 'N/A', Colors.purple),
+                      _buildTile(Icons.group, "Chapter Name", member['chapterName'] ?? 'N/A', Colors.teal),
+                      _buildTrafficLightTile(),
+                    ],
+                  ),
+
                   const SizedBox(height: 10),
-                  Text(
-                    name,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    email,
-                    style: GoogleFonts.montserrat(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      "Status: $memberStatus",
-                      style: GoogleFonts.montserrat(
-                        color: Colors.green,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
+
+                  // 🔹 Show QR Code Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        backgroundColor: mainBlue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 3,
+                      ),
+                      onPressed: () {
+                        // Create JSON data with all profile information
+                        final profileData = {
+                          'name': member['fullName'] ?? 'N/A',
+                          'email': member['email'] ?? 'N/A',
+                          'mobile': member['phone'] ?? 'N/A',
+                          'avatarUrl': photoURL,
+                          'businessName': member['businessName'] ?? 'N/A',
+                          'businessCategory': member['businessCategory'] ?? 'N/A',
+                          'chapterName': member['chapterName'] ?? 'N/A',
+                          'region': member['region'] ?? 'N/A',
+                          'city': member['city'] ?? 'N/A',
+                          'memberStatus': member['memberStatus'] ?? 'N/A',
+                          'trafficLight': member['trafficLight'] ?? 'green',
+                        };
+                        final jsonData = profileData.toString();
+
+                        showDialog(
+                          context: context,
+                          builder: (context) => ShowQrDialog(data: jsonData, name: member['fullName'] ?? 'N/A'),
+                        );
+                      },
+                      icon: const Icon(Icons.qr_code_2, color: Colors.white),
+                      label: Text(
+                        "Show QR Code",
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 0),
-
-            // 🔹 Personal Info Card
-            _buildSectionCard(
-              title: "Personal Information",
-              children: [
-                _buildTile(Icons.phone_android, "Mobile", mobile, Colors.green),
-                _buildTile(Icons.location_city, "City", city, Colors.indigo),
-                _buildTile(Icons.location_on, "Region", region, Colors.red),
-              ],
-            ),
-
-            // 🔹 Business Info Card
-            _buildSectionCard(
-              title: "Business Information",
-              children: [
-                _buildTile(Icons.business, "Business Name", businessName, Colors.blue),
-                _buildTile(Icons.category, "Business Category", businessCategory, Colors.purple),
-                _buildTile(Icons.group, "Chapter Name", chapterName, Colors.teal),
-                _buildTrafficLightTile(),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            // 🔹 Show QR Code Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: mainBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 3,
-                ),
-                onPressed: () {
-                  // Create JSON data with all profile information
-                  final profileData = {
-                    'name': name,
-                    'email': email,
-                    'mobile': mobile,
-                    'avatarUrl': avatarUrl,
-                    'businessName': businessName,
-                    'businessCategory': businessCategory,
-                    'chapterName': chapterName,
-                    'region': region,
-                    'city': city,
-                    'memberStatus': memberStatus,
-                    'trafficLight': trafficLight,
-                  };
-                  final jsonData = profileData.toString();
-
-                  showDialog(
-                    context: context,
-                    builder: (context) => ShowQrDialog(data: jsonData, name: name),
-                  );
-                },
-                icon: const Icon(Icons.qr_code_2, color: Colors.white),
-                label: Text(
-                  "Show QR Code",
-                  style: GoogleFonts.montserrat(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -269,7 +312,7 @@ class Profile extends StatelessWidget {
 
   // Traffic Light Tile Widget
   Widget _buildTrafficLightTile() {
-    final trafficColor = _getTrafficLightColor(trafficLight);
+    final trafficColor = _getTrafficLightColor(member['trafficLight']?.toString().toLowerCase() ?? 'green');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -288,7 +331,7 @@ class Profile extends StatelessWidget {
                     style: GoogleFonts.montserrat(
                         color: Colors.grey[600], fontSize: 12)),
                 Text(
-                  trafficLight.toUpperCase(),
+                  (member['trafficLight'] ?? 'green').toString().toUpperCase(),
                   style: GoogleFonts.montserrat(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

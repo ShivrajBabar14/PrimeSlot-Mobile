@@ -6,8 +6,9 @@ import '../components/showqr.dart';
 
 class Sidebar extends StatelessWidget {
   final VoidCallback? onProfileTap;
+  final String token;
 
-  const Sidebar({super.key, this.onProfileTap});
+  const Sidebar({super.key, this.onProfileTap, required this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +148,7 @@ class Sidebar extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => Profile(scaffoldKey: GlobalKey<ScaffoldState>()),
+                    builder: (_) => Profile(scaffoldKey: GlobalKey<ScaffoldState>(), token: token),
                   ),
                 );
               },

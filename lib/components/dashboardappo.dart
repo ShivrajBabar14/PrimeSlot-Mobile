@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../screens/profile.dart';
 
 class DashboardMeetings extends StatefulWidget {
-  const DashboardMeetings({super.key});
+  final String token;
+
+  const DashboardMeetings({super.key, required this.token});
 
   @override
   State<DashboardMeetings> createState() => _DashboardMeetingsState();
@@ -181,7 +183,7 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
                                       MaterialPageRoute(
                                         builder: (context) => Profile(
                                           scaffoldKey: GlobalKey<ScaffoldState>(),
-                                          token: '', // TODO: Pass actual token
+                                          token: widget.token,
                                         ),
                                       ),
                                     );

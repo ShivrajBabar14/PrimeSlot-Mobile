@@ -5,8 +5,9 @@ import '../components/sidebar.dart';
 
 class ContactDetails extends StatelessWidget {
   final Map<String, dynamic> contact;
+  final String token;
 
-  const ContactDetails({super.key, required this.contact});
+  const ContactDetails({super.key, required this.contact, required this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +44,7 @@ class ContactDetails extends StatelessWidget {
           ),
         ),
       ),
-      drawer: const Sidebar(token: ''), // TODO: Pass actual token
+      drawer: Sidebar(token: token),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: 30),
         child: Column(

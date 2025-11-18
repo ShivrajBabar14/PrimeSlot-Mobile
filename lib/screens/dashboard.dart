@@ -69,7 +69,7 @@ class Dashboard extends StatelessWidget {
         child: Column(
           children: [
             DashboardStats(), // Replace with actual user ID
-            const DashboardMeetings(),
+            DashboardMeetings(token: token),
           ],
         ),
       ),

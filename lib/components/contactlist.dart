@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'contactdetails.dart';
 
 class ContactList extends StatefulWidget {
-  const ContactList({super.key});
+  final String token;
+
+  const ContactList({super.key, required this.token});
 
   @override
   State<ContactList> createState() => _ContactListState();
@@ -54,7 +56,7 @@ class _ContactListState extends State<ContactList> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ContactDetails(contact: contact),
+                    builder: (context) => ContactDetails(contact: contact, token: widget.token),
                   ),
                 );
               },

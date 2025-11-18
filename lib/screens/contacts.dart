@@ -22,7 +22,7 @@ class Contacts extends StatelessWidget {
         ),
         title: Text('Contacts', style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
-      body: const ContactList(),
+      body: ContactList(token: token),
     );
   }
 }

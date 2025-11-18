@@ -141,7 +141,13 @@ class _OtpScreenState extends State<OtpScreen> {
 
         if (meRes.statusCode == 200 && meJsonResp['success'] == true) {
           final userProfile = meJsonResp['member']['userProfile'];
-          final isApproved = userProfile['approved'] == true;
+
+          // Check if profile is approved
+          // userProfile can be either an object (approved) or a string (not approved)
+          bool isApproved = false;
+          if (userProfile is Map && userProfile['approved'] == true) {
+            isApproved = true;
+          }
 
           // Save token to shared preferences
           await AuthService.saveToken(serverToken);

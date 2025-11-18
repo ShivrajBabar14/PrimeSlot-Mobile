@@ -85,6 +85,7 @@ class _PendingRequestState extends State<PendingRequest> {
 
                 processedRequests.add({
                   'id': meeting['meetingId'],
+                  'requesterId': bId,
                   'requesterName': memberDetails['fullName'] ?? 'Unknown User',
                   'photoURL': memberDetails['photoURL'],
                   'date': formattedDate,
@@ -512,20 +513,43 @@ class _PendingRequestState extends State<PendingRequest> {
         return;
       }
 
-      final response = await http.put(
-        Uri.parse('https://prime-slotnew.vercel.app/api/members/meetings/$requestId/accept'),
+      // Find the requesterId for this request
+      final request = _pendingRequests.firstWhere(
+        (req) => req['id'] == requestId,
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (request.isEmpty || !request.containsKey('requesterId')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Request data not found. Please refresh and try again.",
+              style: GoogleFonts.montserrat(),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final requesterId = request['requesterId'];
+
+      final response = await http.post(
+        Uri.parse('https://prime-slotnew.vercel.app/api/members/$requesterId/meetings/$requestId/respond'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
+        body: jsonEncode({
+          'action': 'accept',
+        }),
       );
 
       print('Accept request API response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
-        setState(() {
-          _pendingRequests.removeWhere((request) => request['id'] == requestId);
-        });
+        // Refresh the page after successful response
+        await _fetchPendingRequests();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -569,20 +593,43 @@ class _PendingRequestState extends State<PendingRequest> {
         return;
       }
 
-      final response = await http.put(
-        Uri.parse('https://prime-slotnew.vercel.app/api/members/meetings/$requestId/reject'),
+      // Find the requesterId for this request
+      final request = _pendingRequests.firstWhere(
+        (req) => req['id'] == requestId,
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (request.isEmpty || !request.containsKey('requesterId')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Request data not found. Please refresh and try again.",
+              style: GoogleFonts.montserrat(),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final requesterId = request['requesterId'];
+
+      final response = await http.post(
+        Uri.parse('https://prime-slotnew.vercel.app/api/members/$requesterId/meetings/$requestId/respond'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
+        body: jsonEncode({
+          'action': 'reject',
+        }),
       );
 
       print('Reject request API response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
-        setState(() {
-          _pendingRequests.removeWhere((request) => request['id'] == requestId);
-        });
+        // Refresh the page after successful response
+        await _fetchPendingRequests();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

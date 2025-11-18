@@ -1,7 +1,1 @@
-# TODO List for API Binding Task
-
-- [x] Modify take_profile.dart to add POST /api/profile/upload API call after image pick
-- [x] Modify profile_approval_screen.dart to add POST /api/profile/approve API call on approve button click
-- [x] Add token parameter to all screens and components that need it
-- [x] Add /api/me call in otp_screen.dart to check profile approval status and redirect accordingly
-- [ ] Test the API integrations and handle responses
+- [x] Fetch current user memberId from /api/me and use it to match with aId/bId in appointmentlist.dart

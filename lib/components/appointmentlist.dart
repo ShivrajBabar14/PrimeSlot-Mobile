@@ -40,6 +40,29 @@ class _AppointmentListState extends State<AppointmentList> {
     }
   }
 
+  Future<String?> _getCurrentUserMemberId() async {
+    try {
+      final token = await _getToken();
+      if (token == null) return null;
+
+      final response = await http.get(
+        Uri.parse('https://prime-slotnew.vercel.app/api/me'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['memberId'];
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching current user memberId: $e');
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>?> _fetchMemberDetails(String memberId) async {
     try {
       final response = await http.get(
@@ -77,6 +100,11 @@ class _AppointmentListState extends State<AppointmentList> {
         throw Exception('No authentication token available');
       }
 
+      final currentUserMemberId = await _getCurrentUserMemberId();
+      if (currentUserMemberId == null) {
+        throw Exception('Unable to fetch current user memberId');
+      }
+
       final response = await http.get(
         Uri.parse('https://prime-slotnew.vercel.app/api/meetings'),
         headers: {
@@ -93,11 +121,13 @@ class _AppointmentListState extends State<AppointmentList> {
           final processedAppointments = <Map<String, dynamic>>[];
 
           for (var meeting in meetings) {
+            final aId = meeting['aId'];
             final bId = meeting['bId'];
-            if (bId != null) {
-              // Fetch member details for each bId
-              final memberDetails = await _fetchMemberDetails(bId);
-              print('Member details for $bId: $memberDetails');
+            final memberIdToFetch = (currentUserMemberId == aId) ? bId : aId;
+            if (memberIdToFetch != null) {
+              // Fetch member details for the other participant
+              final memberDetails = await _fetchMemberDetails(memberIdToFetch);
+              print('Member details for $memberIdToFetch: $memberDetails');
               if (memberDetails != null) {
                 // Convert scheduledAt timestamp to local time
                 final scheduledAt = meeting['scheduledAt'];

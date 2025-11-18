@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/profile.dart';
 
 class AppointmentList extends StatefulWidget {
@@ -17,53 +20,199 @@ class AppointmentList extends StatefulWidget {
 }
 
 class _AppointmentListState extends State<AppointmentList> {
-  late List<Map<String, dynamic>> appointments;
-  bool isLoading = false; // Using dummy data, so no API loading
+  List<Map<String, dynamic>> appointments = [];
+  bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _fetchMeetings();
+  }
 
-    // 🗓️ Dummy appointment data with title and location
-    appointments = [
-      {
-        'title': 'Consultation Meeting',
-        'firstName': 'John',
-        'lastName': 'Doe',
-        'appointmentDate': '2025-11-06',
-        'appointmentTime': '10:00 AM - 10:30 AM',
-        'phoneNumber': '+91 9876543210',
-        'email': 'john.doe@example.com',
-        'location': 'Zoom Call',
-        'duration': 30,
-      },
-      {
-        'title': 'Follow-up Discussion',
-        'firstName': 'Emma',
-        'lastName': 'Watson',
-        'appointmentDate': '2025-11-06',
-        'appointmentTime': '11:00 AM - 11:45 AM',
-        'phoneNumber': '+91 9822334455',
-        'email': 'emma.watson@example.com',
-        'location': 'Google Meet',
-        'duration': 45,
-      },
-      {
-        'title': 'Health Check Consultation',
-        'firstName': 'Amit',
-        'lastName': 'Sharma',
-        'appointmentDate': '2025-11-07',
-        'appointmentTime': '02:00 PM - 02:30 PM',
-        'phoneNumber': '+91 9876543211',
-        'email': 'amit.sharma@example.com',
-        'location': 'Clinic Room 2A',
-        'duration': 30,
-      },
-    ];
+  Future<String?> _getToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('auth_token');
+    } catch (e) {
+      print('Error retrieving token: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> _fetchMemberDetails(String memberId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://prime-slotnew.vercel.app/api/members/$memberId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['member'] != null) {
+          final member = data['member'];
+          return {
+            'fullName': member['fullName'],
+            'email': member['email'],
+            'phone': member['phone'],
+            'photoURL': member['userProfile']?['photoURL'],
+          };
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching member details for $memberId: $e');
+      return null;
+    }
+  }
+
+  Future<void> _fetchMeetings() async {
+    try {
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      final token = await _getToken();
+      if (token == null) {
+        throw Exception('No authentication token available');
+      }
+
+      final response = await http.get(
+        Uri.parse('https://prime-slotnew.vercel.app/api/meetings'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print('Meetings API response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['meetings'] != null && data['meetings'] is List) {
+          final meetings = data['meetings'] as List;
+          final processedAppointments = <Map<String, dynamic>>[];
+
+          for (var meeting in meetings) {
+            final bId = meeting['bId'];
+            if (bId != null) {
+              // Fetch member details for each bId
+              final memberDetails = await _fetchMemberDetails(bId);
+              print('Member details for $bId: $memberDetails');
+              if (memberDetails != null) {
+                // Convert scheduledAt timestamp to local time
+                final scheduledAt = meeting['scheduledAt'];
+                final dateTime = DateTime.fromMillisecondsSinceEpoch(scheduledAt * 1000);
+                final localDateTime = dateTime.toLocal();
+
+                final formattedDate = '${localDateTime.year}-${localDateTime.month.toString().padLeft(2, '0')}-${localDateTime.day.toString().padLeft(2, '0')}';
+                final hour = localDateTime.hour > 12 ? localDateTime.hour - 12 : (localDateTime.hour == 0 ? 12 : localDateTime.hour);
+                final period = localDateTime.hour >= 12 ? 'PM' : 'AM';
+                final formattedTime = '${hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')} $period';
+
+                // Calculate end time based on duration
+                final durationMin = meeting['durationMin'] ?? 30;
+                final endDateTime = localDateTime.add(Duration(minutes: durationMin));
+                final endHour = endDateTime.hour > 12 ? endDateTime.hour - 12 : (endDateTime.hour == 0 ? 12 : endDateTime.hour);
+                final endPeriod = endDateTime.hour >= 12 ? 'PM' : 'AM';
+                final formattedEndTime = '${endHour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')} $endPeriod';
+
+                processedAppointments.add({
+                  'id': meeting['meetingId'],
+                  'title': meeting['topic'] ?? 'No topic',
+                  'fullName': memberDetails['fullName'] ?? 'Unknown User',
+                  'appointmentDate': formattedDate,
+                  'appointmentTime': '$formattedTime - $formattedEndTime',
+                  'phoneNumber': memberDetails['phone'] ?? '',
+                  'email': memberDetails['email'] ?? '',
+                  'location': meeting['place'] ?? 'Not specified',
+                  'duration': durationMin,
+                  'photoURL': memberDetails['photoURL'],
+                  'scheduledAt': scheduledAt,
+                });
+              }
+            }
+          }
+
+          setState(() {
+            appointments = processedAppointments;
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            appointments = [];
+            isLoading = false;
+          });
+        }
+      } else {
+        throw Exception('Failed to fetch meetings: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching meetings: $e');
+      setState(() {
+        errorMessage = 'Failed to load appointments. Please try again.';
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 80,
+              color: Colors.red[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Error Loading Appointments",
+              style: GoogleFonts.montserrat(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              errorMessage ?? "Something went wrong. Please try again.",
+              style: GoogleFonts.montserrat(
+                color: Colors.grey[500],
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _fetchMeetings,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0052CC),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                "Retry",
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     // Filter appointments by selected date
     final filteredAppointments = appointments.where((appointment) {
       final appointmentDate = DateTime.parse(appointment['appointmentDate']);
@@ -167,20 +316,20 @@ class _AppointmentListState extends State<AppointmentList> {
                                 ),
                               );
                             },
-                            child: const CircleAvatar(
+                            child: CircleAvatar(
                               radius: 16,
-                              backgroundColor: Color(0xFF0052CC),
-                              child: Icon(
-                                Icons.person,
-                                size: 16,
-                                color: Colors.white,
-                              ),
+                              backgroundImage: appointment['photoURL'] != null && appointment['photoURL'].isNotEmpty
+                                  ? NetworkImage(appointment['photoURL'])
+                                  : null,
+                              child: appointment['photoURL'] == null || appointment['photoURL'].isEmpty
+                                  ? Icon(Icons.person, color: const Color(0xFF0052CC), size: 16)
+                                  : null,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              '${appointment['firstName']} ${appointment['lastName']}',
+                              appointment['fullName'],
                               style: GoogleFonts.montserrat(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
@@ -218,9 +367,9 @@ class _AppointmentListState extends State<AppointmentList> {
                       /// 🔹 Action Buttons + Duration
                       Row(
                         children: [
-                          _actionButton(Icons.call, "Call"),
+                          _actionButton(Icons.call, "Call", appointment),
                           const SizedBox(width: 12),
-                          _actionButton(Icons.email_outlined, "Mail"),
+                          _actionButton(Icons.email_outlined, "Mail", appointment),
                           const Spacer(),
                           Text(
                             '${appointment['duration']} min',
@@ -243,26 +392,37 @@ class _AppointmentListState extends State<AppointmentList> {
   }
 
   /// 🔹 Reusable action button
-  Widget _actionButton(IconData icon, String label) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFE2F4FF),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: Colors.black87),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.montserrat(
-              fontSize: 12,
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
+  Widget _actionButton(IconData icon, String label, Map<String, dynamic> appointment) {
+    return GestureDetector(
+      onTap: () {
+        if (label == "Call") {
+          // TODO: Implement phone call functionality
+          print("Call ${appointment['phoneNumber']}");
+        } else if (label == "Mail") {
+          // TODO: Implement email functionality
+          print("Email ${appointment['email']}");
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFE2F4FF),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: Colors.black87),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: GoogleFonts.montserrat(
+                fontSize: 12,
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

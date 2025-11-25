@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/profile.dart';
 
 class DashboardMeetings extends StatefulWidget {
@@ -52,9 +51,8 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
   String _formatTime(DateTime dt) {
     final h = dt.hour;
     final m = dt.minute.toString().padLeft(2, '0');
-    final isPM = h >= 12;
     final hour12 = h % 12 == 0 ? 12 : h % 12;
-    return "$hour12:$m ${isPM ? 'PM' : 'AM'}";
+    return "$hour12:$m ${h >= 12 ? 'PM' : 'AM'}";
   }
 
   Future<Map<String, dynamic>?> _fetchMember(String memberId) async {
@@ -80,7 +78,7 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
       setState(() => isLoading = true);
 
       final currentUserId = await _getCurrentUserId();
-      if (currentUserId == null) throw "Current user not found";
+      if (currentUserId == null) throw "User not found";
 
       final res = await http.get(
         Uri.parse("https://prime-slotnew.vercel.app/api/meetings"),
@@ -91,26 +89,30 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
       final meetings = data["meetings"] ?? [];
 
       List<Map<String, dynamic>> temp = [];
-      DateTime now = DateTime.now();
+      DateTime today = DateTime.now();
 
       for (var m in meetings) {
-        String? otherId = currentUserId == m["aId"] ? m["bId"] : m["aId"];
+
+        // SHOW ONLY MEETINGS WHERE USER IS INVOLVED (aId OR bId)
+        if (m["aId"] != currentUserId && m["bId"] != currentUserId) continue;
+
+        final otherId = m["aId"] == currentUserId ? m["bId"] : m["aId"];
         if (otherId == null) continue;
 
         final member = await _fetchMember(otherId);
         if (member == null) continue;
 
-        final startMillis = _normalizeToMillis(m["scheduledAt"]);
-        if (startMillis == 0) continue;
+        final millis = _normalizeToMillis(m["scheduledAt"]);
+        if (millis == 0) continue;
 
-        final startIST = _toIST(startMillis);
+        final startIST = _toIST(millis);
 
-        if (startIST.year == now.year &&
-            startIST.month == now.month &&
-            startIST.day == now.day) {
+        if (startIST.year == today.year &&
+            startIST.month == today.month &&
+            startIST.day == today.day) {
           temp.add({
             "title": m["topic"] ?? "New Meeting",
-            "fullName": member["fullName"] ?? "Unknown User",
+            "fullName": member["fullName"],
             "memberId": otherId,
             "photoURL": member["photoURL"],
             "location": m["place"] ?? "Not Assigned",
@@ -134,18 +136,12 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
 
   @override
   Widget build(BuildContext context) {
-    double cardHeight = 120;
-    double totalHeight = (todaysMeetings.length * cardHeight) + 90;
-    double maxHeight = 450;
-
-    double containerHeight = totalHeight > maxHeight
-        ? maxHeight
-        : totalHeight.clamp(220, maxHeight);
+    double maxHeight = 450; // scrollable height box
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
-      constraints: BoxConstraints(maxHeight: containerHeight),
+      constraints: BoxConstraints(maxHeight: maxHeight), // SCROLL ENABLED
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -181,9 +177,7 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
                           ),
                         )
                       : ListView.builder(
-                          physics: todaysMeetings.length > 3
-                              ? const BouncingScrollPhysics()
-                              : const NeverScrollableScrollPhysics(),
+                          physics: const BouncingScrollPhysics(),
                           itemCount: todaysMeetings.length,
                           itemBuilder: (context, index) =>
                               _buildMeetingCard(todaysMeetings[index]),
@@ -213,7 +207,6 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Title + time
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -238,6 +231,7 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
               ),
             ],
           ),
+
           const SizedBox(height: 4),
 
           Row(
@@ -271,7 +265,7 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
               Expanded(
                 child: Text(
                   m["fullName"],
-                  overflow: TextOverflow.ellipsis, // ✅ correct place
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.montserrat(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -281,6 +275,7 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
               ),
             ],
           ),
+
           const SizedBox(height: 6),
 
           Row(
@@ -303,6 +298,7 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
               ),
             ],
           ),
+
           const SizedBox(height: 10),
 
           Row(

@@ -31,35 +31,27 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
     )..repeat(reverse: true);
 
     _anim = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    _fetchMyMemberId();
+    // We will now fetch the member ID just-in-time when a QR is scanned.
   }
 
-  Future<void> _fetchMyMemberId() async {
+  Future<String?> _fetchMyMemberId() async {
     try {
       final response = await http.get(
         Uri.parse('https://prime-slotnew.vercel.app/api/me'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-        },
+        headers: {'Authorization': 'Bearer ${widget.token}'},
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          String photoURL = data['member']['userProfile']['photoURL'] ?? '';
-          if (photoURL.isNotEmpty) {
-            RegExp regExp = RegExp(r'/profiles/([^/]+)/');
-            Match? match = regExp.firstMatch(photoURL);
-            if (match != null && match.groupCount >= 1) {
-              setState(() {
-                _myMemberId = match.group(1)!;
-              });
-            }
-          }
+          // Directly return the memberId from the API response.
+          return data['memberId'];
         }
       }
+      return null;
     } catch (e) {
       print('Error fetching member ID: $e');
+      return null;
     }
   }
 
@@ -69,142 +61,105 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) {
+  void _onDetect(BarcodeCapture capture) async {
     if (_isProcessing) return;
+
     final codes = capture.barcodes;
     if (codes.isEmpty) return;
 
     final String? value = codes.first.rawValue;
     if (value == null || value.isEmpty) return;
 
-    // Log the scanned data to console
-    print('QR Code Scanned - Data: $value');
-
     setState(() {
-      _scannedData = value;
       _isProcessing = true;
     });
 
-    // Show the scanned data instead of immediately closing
-    _showScannedDataDialog(value);
-  }
+    // Log the scanned data
+    print('QR Code Scanned - Data: $value');
 
-  void _showScannedDataDialog(String data) {
+    // Show a loading indicator immediately
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('QR Code Scanned'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Member ID:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                data,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 16),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                setState(() {
-                  _isProcessing = false;
-                  _scannedData = null;
-                });
-              },
-              child: const Text('Scan Again'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // Get navigator before closing dialog
-                final navigator = Navigator.of(context);
-
-                // Close dialog first
-                navigator.pop();
-
-                // Call the availability API after dialog is closed
-                List<Map<String, DateTime>> busySlots = [];
-                if (_myMemberId != null) {
-                  try {
-                    final response = await http.post(
-                      Uri.parse('https://prime-slotnew.vercel.app/api/members/availability'),
-                      headers: {
-                        'Authorization': 'Bearer ${widget.token}',
-                        'Content-Type': 'application/json',
-                      },
-                      body: jsonEncode({
-                        'aid': _myMemberId,
-                        'bid': data,
-                      }),
-                    );
-
-                    print('Availability API Response: ${response.body}');
-
-                    // Parse busy slots from response
-                    if (response.statusCode == 200) {
-                      final responseData = jsonDecode(response.body);
-                      final eventsList = responseData['events'] as List? ?? [];
-                      busySlots = eventsList.map((event) {
-                        String startStr = event['start'];
-                        String endStr = event['end'];
-
-                        DateTime start = DateTime.parse(startStr);
-                        DateTime end = DateTime.parse(endStr);
-
-                        return {
-                          'start': start,
-                          'end': end,
-                        };
-                      }).toList();
-                    }
-
-                    // Navigate to MeetingCalendar after API call
-                    navigator.push(
-                      MaterialPageRoute(
-                        builder: (context) => MeetingCalendar(
-                          scannedUserData: data,
-                          busySlots: busySlots,
-                        ),
-                      ),
-                    );
-                  } catch (e) {
-                    print('Error calling availability API: $e');
-                    // Still navigate even if API fails
-                    navigator.push(
-                      MaterialPageRoute(
-                        builder: (context) => MeetingCalendar(
-                          scannedUserData: data,
-                          busySlots: busySlots,
-                        ),
-                      ),
-                    );
-                  }
-                } else {
-                  // Navigate even if member ID is not available
-                  navigator.push(
-                    MaterialPageRoute(
-                      builder: (context) => MeetingCalendar(
-                        scannedUserData: data,
-                        busySlots: busySlots,
-                      ),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Schedule Meeting'),
-            ),
-          ],
-        );
-      },
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+
+    // Ensure we have the current user's member ID before proceeding.
+    _myMemberId ??= await _fetchMyMemberId();
+
+    if (_myMemberId == null) {
+      // Dismiss loading indicator
+      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Your member ID couldn't be loaded. Please try again.",
+            ),
+          ),
+        );
+      }
+      setState(() => _isProcessing = false); // Allow scanning again
+      return;
+    }
+
+    List<Map<String, DateTime>> busySlots = [];
+    try {
+      final response = await http.post(
+        Uri.parse('https://prime-slotnew.vercel.app/api/members/availability'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'aId': _myMemberId, // 👈 your member id
+          'bId': value, // 👈 scanned QR data
+        }),
+      );
+
+      print('Availability API Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final eventsList = responseData['events'] as List? ?? [];
+        busySlots = eventsList.map((event) {
+          return {
+            'start': DateTime.parse(event['start']),
+            'end': DateTime.parse(event['end']),
+          };
+        }).toList();
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error fetching availability: ${response.body}'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error calling availability API: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to get availability: $e')),
+        );
+      }
+    } finally {
+      // Dismiss loading indicator
+      if (mounted) Navigator.of(context).pop();
+
+      // Navigate to MeetingCalendar and reset processing state when done
+      if (mounted) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) =>
+                MeetingCalendar(scannedUserData: value, busySlots: busySlots),
+          ),
+        );
+      }
+      // Allow scanning again after returning from the calendar
+      setState(() => _isProcessing = false);
+    }
   }
 
   @override
@@ -217,10 +172,7 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
           children: [
             /// 🔹 Background Camera
             Positioned.fill(
-              child: MobileScanner(
-                fit: BoxFit.cover,
-                onDetect: _onDetect,
-              ),
+              child: MobileScanner(fit: BoxFit.cover, onDetect: _onDetect),
             ),
 
             /// 🔹 Dim Overlay with Hole
@@ -239,10 +191,7 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
                 width: _boxSize,
                 height: _boxSize,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.blueAccent,
-                    width: 3,
-                  ),
+                  border: Border.all(color: Colors.blueAccent, width: 3),
                   borderRadius: BorderRadius.circular(_borderRadius),
                   boxShadow: [
                     BoxShadow(
@@ -332,8 +281,11 @@ class _ScanQRState extends State<ScanQR> with SingleTickerProviderStateMixin {
                   border: Border.all(color: Colors.white24),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new,
-                      color: Colors.white, size: 20),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -383,7 +335,9 @@ class _HolePainter extends CustomPainter {
       height: boxSize,
     );
     final holePath = Path()
-      ..addRRect(RRect.fromRectAndRadius(holeRect, Radius.circular(borderRadius)));
+      ..addRRect(
+        RRect.fromRectAndRadius(holeRect, Radius.circular(borderRadius)),
+      );
 
     canvas.saveLayer(fullRect, Paint());
     canvas.drawPath(fullPath, paint);

@@ -55,9 +55,7 @@ class _AppointmentListState extends State<AppointmentList> {
 
       final response = await http.get(
         Uri.parse('https://prime-slotnew.vercel.app/api/me'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
@@ -96,6 +94,34 @@ class _AppointmentListState extends State<AppointmentList> {
     }
   }
 
+  /// 🔹 Helper: normalize epoch (seconds or ms) → milliseconds
+  int _normalizeToMillis(dynamic raw) {
+    if (raw == null) return 0;
+
+    int value;
+    if (raw is int) {
+      value = raw;
+    } else if (raw is String) {
+      value = int.tryParse(raw) ?? 0;
+    } else {
+      return 0;
+    }
+
+    // If less than 1e12, it’s almost certainly in SECONDS → convert to ms
+    if (value < 1000000000000) {
+      value *= 1000;
+    }
+    return value;
+  }
+
+  /// 🔹 Helper: convert epoch ms (UTC) → IST DateTime
+  DateTime _toIstFromMillis(int epochMillis) {
+    // Treat the stored value as UTC epoch millis
+    final utc = DateTime.fromMillisecondsSinceEpoch(epochMillis, isUtc: true);
+    // IST = UTC + 5:30
+    return utc.add(const Duration(hours: 5, minutes: 30));
+  }
+
   Future<void> _fetchMeetings() async {
     try {
       setState(() {
@@ -115,9 +141,7 @@ class _AppointmentListState extends State<AppointmentList> {
 
       final response = await http.get(
         Uri.parse('https://prime-slotnew.vercel.app/api/meetings'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       print('Meetings API response: ${response.statusCode} - ${response.body}');
@@ -131,42 +155,74 @@ class _AppointmentListState extends State<AppointmentList> {
           for (var meeting in meetings) {
             final aId = meeting['aId'];
             final bId = meeting['bId'];
-            final memberIdToFetch = (currentUserMemberId == aId) ? bId : aId;
+            final memberIdToFetch =
+                (currentUserMemberId == aId) ? bId : aId;
+
             if (memberIdToFetch != null) {
-              // Fetch member details for the other participant
-              final memberDetails = await _fetchMemberDetails(memberIdToFetch);
+              final memberDetails =
+                  await _fetchMemberDetails(memberIdToFetch);
               print('Member details for $memberIdToFetch: $memberDetails');
+
               if (memberDetails != null) {
-                // Convert scheduledAt timestamp to local time
-                final scheduledAt = meeting['scheduledAt'];
-                final dateTime = DateTime.fromMillisecondsSinceEpoch(scheduledAt * 1000);
-                final localDateTime = dateTime.toLocal();
+                // 🔹 scheduledAt handling (seconds OR ms → IST)
+                final rawScheduledAt = meeting['scheduledAt'];
+                final scheduledAtMillis = _normalizeToMillis(rawScheduledAt);
 
-                final formattedDate = '${localDateTime.year}-${localDateTime.month.toString().padLeft(2, '0')}-${localDateTime.day.toString().padLeft(2, '0')}';
-                final hour = localDateTime.hour > 12 ? localDateTime.hour - 12 : (localDateTime.hour == 0 ? 12 : localDateTime.hour);
-                final period = localDateTime.hour >= 12 ? 'PM' : 'AM';
-                final formattedTime = '${hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')} $period';
+                if (scheduledAtMillis == 0) continue;
 
-                // Calculate end time based on duration
+                final istStart = _toIstFromMillis(scheduledAtMillis);
+
+                // Optional debug:
+                print(
+                  'Meeting ${meeting['meetingId']} '
+                  '→ raw: $rawScheduledAt, '
+                  'millis: $scheduledAtMillis, '
+                  'IST: $istStart',
+                );
+
+                // 🔹 endTime handling: prefer backend endTime if present
+                DateTime istEnd;
+                if (meeting['endTime'] != null) {
+                  final endMillis =
+                      _normalizeToMillis(meeting['endTime']);
+                  istEnd = _toIstFromMillis(endMillis);
+                } else {
+                  final durationMin = meeting['durationMin'] ?? 30;
+                  istEnd = istStart.add(Duration(minutes: durationMin));
+                }
+
+                // 🔹 Format date (yyyy-MM-dd) in IST
+                final formattedDate =
+                    '${istStart.year}-${istStart.month.toString().padLeft(2, '0')}-${istStart.day.toString().padLeft(2, '0')}';
+
+                // 🔹 Format time (hh:mm AM/PM) in IST
+                String _formatTime(DateTime dt) {
+                  final h = dt.hour;
+                  final hour12 =
+                      h > 12 ? h - 12 : (h == 0 ? 12 : h);
+                  final period = h >= 12 ? 'PM' : 'AM';
+                  return '${hour12.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} $period';
+                }
+
+                final formattedTime = _formatTime(istStart);
+                final formattedEndTime = _formatTime(istEnd);
+
                 final durationMin = meeting['durationMin'] ?? 30;
-                final endDateTime = localDateTime.add(Duration(minutes: durationMin));
-                final endHour = endDateTime.hour > 12 ? endDateTime.hour - 12 : (endDateTime.hour == 0 ? 12 : endDateTime.hour);
-                final endPeriod = endDateTime.hour >= 12 ? 'PM' : 'AM';
-                final formattedEndTime = '${endHour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')} $endPeriod';
 
                 processedAppointments.add({
                   'id': meeting['meetingId'],
                   'memberId': memberIdToFetch,
                   'title': meeting['topic'] ?? 'No topic',
                   'fullName': memberDetails['fullName'] ?? 'Unknown User',
-                  'appointmentDate': formattedDate,
-                  'appointmentTime': '$formattedTime - $formattedEndTime',
+                  'appointmentDate': formattedDate, // 🔹 IST date
+                  'appointmentTime':
+                      '$formattedTime - $formattedEndTime', // 🔹 IST times
                   'phoneNumber': memberDetails['phone'] ?? '',
                   'email': memberDetails['email'] ?? '',
                   'location': meeting['place'] ?? 'Not specified',
                   'duration': durationMin,
                   'photoURL': memberDetails['photoURL'],
-                  'scheduledAt': scheduledAt,
+                  'scheduledAt': scheduledAtMillis, // stored as ms
                 });
               }
             }
@@ -183,7 +239,9 @@ class _AppointmentListState extends State<AppointmentList> {
           });
         }
       } else {
-        throw Exception('Failed to fetch meetings: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Failed to fetch meetings: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       print('Error fetching meetings: $e');
@@ -205,11 +263,7 @@ class _AppointmentListState extends State<AppointmentList> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 80,
-              color: Colors.red[300],
-            ),
+            Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
             const SizedBox(height: 16),
             Text(
               "Error Loading Appointments",
@@ -233,7 +287,10 @@ class _AppointmentListState extends State<AppointmentList> {
               onPressed: _fetchMeetings,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0052CC),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -252,9 +309,10 @@ class _AppointmentListState extends State<AppointmentList> {
       );
     }
 
-    // Filter appointments by selected date
+    // 🔹 Filter appointments by selected IST date
     final filteredAppointments = appointments.where((appointment) {
-      final appointmentDate = DateTime.parse(appointment['appointmentDate']);
+      final appointmentDate =
+          DateTime.parse(appointment['appointmentDate']); // IST date
       return appointmentDate.year == widget.selectedDate.year &&
           appointmentDate.month == widget.selectedDate.month &&
           appointmentDate.day == widget.selectedDate.day;
@@ -264,7 +322,10 @@ class _AppointmentListState extends State<AppointmentList> {
       return Center(
         child: Text(
           'No appointments scheduled for this date.',
-          style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+          style: GoogleFonts.montserrat(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
         ),
       );
     }
@@ -289,8 +350,10 @@ class _AppointmentListState extends State<AppointmentList> {
               itemCount: filteredAppointments.length,
               itemBuilder: (context, index) {
                 final appointment = filteredAppointments[index];
-                final timeParts = appointment['appointmentTime'].split(' - ');
-                final startTime = timeParts.isNotEmpty ? timeParts[0] : '';
+                final timeParts =
+                    appointment['appointmentTime'].split(' - ');
+                final startTime =
+                    timeParts.isNotEmpty ? timeParts[0] : '';
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -315,7 +378,8 @@ class _AppointmentListState extends State<AppointmentList> {
                     children: [
                       /// 🔹 Title & Time
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
                             child: Text(
@@ -351,9 +415,14 @@ class _AppointmentListState extends State<AppointmentList> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => Profile(
-                                      scaffoldKey: GlobalKey<ScaffoldState>(),
+                                      scaffoldKey:
+                                          GlobalKey<ScaffoldState>(),
                                       token: token,
-                                      memberId: appointment['memberId'] != null ? appointment['memberId'].toString() : null,
+                                      memberId:
+                                          appointment['memberId'] != null
+                                              ? appointment['memberId']
+                                                  .toString()
+                                              : null,
                                     ),
                                   ),
                                 );
@@ -361,11 +430,20 @@ class _AppointmentListState extends State<AppointmentList> {
                             },
                             child: CircleAvatar(
                               radius: 16,
-                              backgroundImage: appointment['photoURL'] != null && appointment['photoURL'].isNotEmpty
-                                  ? NetworkImage(appointment['photoURL'])
-                                  : null,
-                              child: appointment['photoURL'] == null || appointment['photoURL'].isEmpty
-                                  ? Icon(Icons.person, color: const Color(0xFF0052CC), size: 16)
+                              backgroundImage:
+                                  appointment['photoURL'] != null &&
+                                          appointment['photoURL'].isNotEmpty
+                                      ? NetworkImage(
+                                          appointment['photoURL'],
+                                        )
+                                      : null,
+                              child: appointment['photoURL'] == null ||
+                                      appointment['photoURL'].isEmpty
+                                  ? Icon(
+                                      Icons.person,
+                                      color: const Color(0xFF0052CC),
+                                      size: 16,
+                                    )
                                   : null,
                             ),
                           ),
@@ -412,7 +490,11 @@ class _AppointmentListState extends State<AppointmentList> {
                         children: [
                           _actionButton(Icons.call, "Call", appointment),
                           const SizedBox(width: 12),
-                          _actionButton(Icons.email_outlined, "Mail", appointment),
+                          _actionButton(
+                            Icons.email_outlined,
+                            "Mail",
+                            appointment,
+                          ),
                           const Spacer(),
                           Text(
                             '${appointment['duration']} min',
@@ -435,14 +517,16 @@ class _AppointmentListState extends State<AppointmentList> {
   }
 
   /// 🔹 Reusable action button
-  Widget _actionButton(IconData icon, String label, Map<String, dynamic> appointment) {
+  Widget _actionButton(
+    IconData icon,
+    String label,
+    Map<String, dynamic> appointment,
+  ) {
     return GestureDetector(
       onTap: () {
         if (label == "Call") {
-          // TODO: Implement phone call functionality
           print("Call ${appointment['phoneNumber']}");
         } else if (label == "Mail") {
-          // TODO: Implement email functionality
           print("Email ${appointment['email']}");
         }
       },
@@ -451,7 +535,8 @@ class _AppointmentListState extends State<AppointmentList> {
           color: const Color(0xFFE2F4FF),
           borderRadius: BorderRadius.circular(16),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Row(
           children: [
             Icon(icon, size: 14, color: Colors.black87),

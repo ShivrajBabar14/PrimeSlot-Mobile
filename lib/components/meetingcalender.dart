@@ -23,17 +23,9 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
   DateTime? _selectedDay;
 
   // Mock data
-  final Map<DateTime, List<String>> _currentUserBookedSlots = {
-    DateTime(2024, 12, 15): ['10:00 AM', '2:00 PM'],
-    DateTime(2024, 12, 16): ['9:00 AM', '3:00 PM'],
-    DateTime(2024, 12, 17): ['11:00 AM'],
-  };
-
-  final Map<DateTime, List<String>> _scannedUserBookedSlots = {
-    DateTime(2024, 12, 15): ['11:00 AM', '4:00 PM'],
-    DateTime(2024, 12, 16): ['10:00 AM', '1:00 PM'],
-    DateTime(2024, 12, 18): ['2:00 PM'],
-  };
+  // Removed mock booked slots to fully use busySlots from API response
+  // final Map<DateTime, List<String>> _currentUserBookedSlots = {};
+  // final Map<DateTime, List<String>> _scannedUserBookedSlots = {};
 
   final List<String> _allTimeSlots = [
     '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM',
@@ -169,14 +161,17 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
   }
 
   Widget _buildSlotCard(Color mainBlue) {
-    final currentUserBooked = _currentUserBookedSlots[_selectedDay] ?? [];
-    final scannedUserBooked = _scannedUserBookedSlots[_selectedDay] ?? [];
+    // Removed currentUserBooked and scannedUserBooked since using busySlots fully
+    // final currentUserBooked = _currentUserBookedSlots[_selectedDay] ?? [];
+    // final scannedUserBooked = _scannedUserBookedSlots[_selectedDay] ?? [];
 
     // Get busy slots for the selected day
-    final busySlotsForDay = widget.busySlots.where((busy) {
-      return busy['start']!.year == _selectedDay!.year &&
-             busy['start']!.month == _selectedDay!.month &&
-             busy['start']!.day == _selectedDay!.day;
+    final selectedDate = DateUtils.dateOnly(_selectedDay!);
+    final busySlotsForDay = widget.busySlots.where((slot) {
+      final start = DateUtils.dateOnly(slot['start']!);
+      final end = DateUtils.dateOnly(slot['end']!);
+      // Check if the selected date is between the start and end of a busy slot (inclusive)
+      return (selectedDate.isAtSameMomentAs(start) || selectedDate.isAfter(start)) && (selectedDate.isAtSameMomentAs(end) || selectedDate.isBefore(end));
     }).toList();
 
     return Container(
@@ -224,18 +219,18 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
                 ),
                 itemBuilder: (context, index) {
                   final slot = _allTimeSlots[index];
-                  final isCurrentUserBooked = currentUserBooked.contains(slot);
-                  final isScannedUserBooked = scannedUserBooked.contains(slot);
-                  final isBusyFromAPI = _isSlotBusy(slot, busySlotsForDay);
-                  final isAvailable = !isCurrentUserBooked && !isScannedUserBooked && !isBusyFromAPI;
+          // final isCurrentUserBooked = currentUserBooked.contains(slot);
+          // final isScannedUserBooked = scannedUserBooked.contains(slot);
+          final isBusyFromAPI = _isSlotBusy(slot, busySlotsForDay);
+          final isAvailable = !isBusyFromAPI;
 
-                  return _buildCompactSlotCard(
-                    slot,
-                    isAvailable,
-                    isCurrentUserBooked,
-                    isScannedUserBooked,
-                    isBusyFromAPI,
-                  );
+          return _buildCompactSlotCard(
+            slot,
+            isAvailable,
+            false, // isCurrentUserBooked false
+            false, // isScannedUserBooked false
+            isBusyFromAPI,
+          );
                 },
               );
             },
@@ -293,10 +288,13 @@ class _MeetingCalendarState extends State<MeetingCalendar> {
     final slotStart = DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day, hour, minute);
     final slotEnd = slotStart.add(const Duration(hours: 1));
 
-    // Check if any meeting starts within this slot's time range
+    // Check if any meeting overlaps with this slot's time range
     for (final busy in busySlots) {
       final meetingStart = busy['start']!;
-      if (meetingStart.isAtSameMomentAs(slotStart) || (meetingStart.isAfter(slotStart) && meetingStart.isBefore(slotEnd))) {
+      final meetingEnd = busy['end']!;
+      // Check if the slot overlaps with meeting time
+      bool overlaps = slotStart.isBefore(meetingEnd) && slotEnd.isAfter(meetingStart);
+      if (overlaps) {
         return true;
       }
     }

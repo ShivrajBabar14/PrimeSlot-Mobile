@@ -33,7 +33,8 @@ class _MeetingRequestState extends State<MeetingRequest> {
   void initState() {
     super.initState();
     _dateController = TextEditingController(
-      text: '${widget.selectedDate.day}/${widget.selectedDate.month}/${widget.selectedDate.year}',
+      text:
+          '${widget.selectedDate.day}/${widget.selectedDate.month}/${widget.selectedDate.year}',
     );
     _timeController = TextEditingController(text: widget.selectedTime);
     _locationController = TextEditingController();
@@ -59,9 +60,7 @@ class _MeetingRequestState extends State<MeetingRequest> {
 
       final response = await http.get(
         Uri.parse('https://prime-slotnew.vercel.app/api/me'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
@@ -80,7 +79,9 @@ class _MeetingRequestState extends State<MeetingRequest> {
           }
         }
       } else {
-        print('Failed to fetch member ID: ${response.statusCode} - ${response.body}');
+        print(
+          'Failed to fetch member ID: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       print('Error fetching member ID: $e');
@@ -355,11 +356,7 @@ class _MeetingRequestState extends State<MeetingRequest> {
                       hintStyle: GoogleFonts.montserrat(
                         color: Colors.grey[400],
                       ),
-                      prefixIcon: Icon(
-                        Icons.title,
-                        color: mainBlue,
-                        size: 20,
-                      ),
+                      prefixIcon: Icon(Icons.title, color: mainBlue, size: 20),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey[300]!),
@@ -431,7 +428,9 @@ class _MeetingRequestState extends State<MeetingRequest> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : Text(
@@ -512,7 +511,8 @@ class _MeetingRequestState extends State<MeetingRequest> {
         minute,
       );
 
-      final timestamp = scheduledDateTime.millisecondsSinceEpoch ~/ 1000; // Convert to seconds
+      final scheduledAtMs =
+          scheduledDateTime.millisecondsSinceEpoch; // Convert to seconds
 
       final token = await _getToken();
       if (token == null) {
@@ -520,22 +520,27 @@ class _MeetingRequestState extends State<MeetingRequest> {
       }
 
       final response = await http.post(
-        Uri.parse('https://prime-slotnew.vercel.app/api/members/${widget.scannedUserData}/meetings/request'),
+        Uri.parse(
+          'https://prime-slotnew.vercel.app/api/members/${widget.scannedUserData}/meetings/request',
+        ),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
           'aId': _myMemberId,
-          'scheduledAt': timestamp,
+          'scheduledAt': scheduledAtMs, // 👈 millis
           'durationMin': 60,
           'place': _locationController.text,
           'topic': _topicController.text,
-          'eventId': timestamp.toString(),
+          'eventId': scheduledAtMs
+              .toString(), // 👈 if your backend expects string
         }),
       );
 
-      print('Meeting request API response: ${response.statusCode} - ${response.body}'); // Console log the API response
+      print(
+        'Meeting request API response: ${response.statusCode} - ${response.body}',
+      ); // Console log the API response
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -549,7 +554,9 @@ class _MeetingRequestState extends State<MeetingRequest> {
         );
         Navigator.pop(context);
       } else {
-        throw Exception('Failed to send meeting request: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Failed to send meeting request: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       print('Error sending meeting request: $e');

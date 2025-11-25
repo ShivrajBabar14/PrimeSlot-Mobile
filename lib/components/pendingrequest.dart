@@ -120,7 +120,7 @@ class _PendingRequestState extends State<PendingRequest> {
                 if (memberDetails != null) {
                   // Convert scheduledAt timestamp to local time
                   final scheduledAt = meeting['scheduledAt'];
-                  final dateTime = DateTime.fromMillisecondsSinceEpoch(scheduledAt * 1000);
+                  final dateTime = DateTime.fromMillisecondsSinceEpoch(scheduledAt);
                   final localDateTime = dateTime.toLocal();
 
                   final formattedDate = '${localDateTime.day}/${localDateTime.month}/${localDateTime.year}';
@@ -372,48 +372,62 @@ class _PendingRequestState extends State<PendingRequest> {
   }
 
   Widget _buildRequestCard(Map<String, dynamic> request, Color mainBlue) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Requester Name and Photo
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: request['photoURL'] != null && request['photoURL'].isNotEmpty
-                    ? NetworkImage(request['photoURL'])
-                    : null,
-                child: request['photoURL'] == null || request['photoURL'].isEmpty
-                    ? Icon(Icons.person, color: mainBlue, size: 20)
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  request['requesterName'],
-                  style: GoogleFonts.montserrat(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
-            ],
-          ),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Requester Name and Photo
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 20,
+                                  backgroundImage: request['photoURL'] != null && request['photoURL'].isNotEmpty
+                                      ? NetworkImage(request['photoURL'])
+                                      : null,
+                                  child: request['photoURL'] == null || request['photoURL'].isEmpty
+                                      ? Icon(Icons.person, color: mainBlue, size: 20)
+                                      : null,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        request['requesterName'],
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        request['topic'] ?? 'No topic',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
 
           const SizedBox(height: 16),
 

@@ -19,12 +19,17 @@ class _BottomNavState extends State<BottomNav> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  late final _pages = [
-    Dashboard(scaffoldKey: _scaffoldKey, token: widget.token),
-    Appointment(scaffoldKey: _scaffoldKey, token: widget.token),
-    Events(scaffoldKey: _scaffoldKey, token: widget.token),
-    Contacts(scaffoldKey: _scaffoldKey, token: widget.token),
-  ];
+  // This key will change to force rebuild of the selected page
+  UniqueKey _pageKey = UniqueKey();
+
+  List<Widget> get _pages {
+    return [
+      Dashboard(key: _selectedIndex == 0 ? _pageKey : UniqueKey(), scaffoldKey: _scaffoldKey, token: widget.token),
+      Appointment(key: _selectedIndex == 1 ? _pageKey : UniqueKey(), scaffoldKey: _scaffoldKey, token: widget.token),
+      Events(key: _selectedIndex == 2 ? _pageKey : UniqueKey(), scaffoldKey: _scaffoldKey, token: widget.token),
+      Contacts(key: _selectedIndex == 3 ? _pageKey : UniqueKey(), scaffoldKey: _scaffoldKey, token: widget.token),
+    ];
+  }
 
   Widget _buildTab({
     required String assetPath,
@@ -36,7 +41,15 @@ class _BottomNavState extends State<BottomNav> {
 
     return InkWell(
       borderRadius: BorderRadius.circular(50),
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        setState(() {
+          if (_selectedIndex == index) {
+            // If tapping the already selected tab, change the key to force refresh
+            _pageKey = UniqueKey();
+          }
+          _selectedIndex = index;
+        });
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,

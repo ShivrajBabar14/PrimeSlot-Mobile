@@ -33,9 +33,10 @@ class _AppointmentListState extends State<AppointmentList> {
   @override
   void didUpdateWidget(covariant AppointmentList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedDate != widget.selectedDate) {
-      _fetchMeetings();
-    }
+    // Removed _fetchMeetings call on selectedDate change to avoid API call every time date changes
+    // if (oldWidget.selectedDate != widget.selectedDate) {
+    //   _fetchMeetings();
+    // }
   }
 
   Future<String?> _getToken() async {

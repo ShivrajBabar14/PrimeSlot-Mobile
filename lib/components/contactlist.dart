@@ -116,17 +116,7 @@ class _ContactListState extends State<ContactList> {
             InkWell(
               onTap: () {
                 final mappedContact = {
-                  'name': fullName,
-                  'email': email,
-                  'mobile': phone,
-                  'avatarUrl': avatarUrl,
-                  'businessName': contact['businessName'] ?? 'N/A',
-                  'businessCategory': contact['businessCategory'] ?? 'N/A',
-                  'chapterName': contact['chapterName'] ?? 'N/A',
-                  'region': contact['region'] ?? 'N/A',
-                  'city': contact['city'] ?? 'N/A',
-                  'memberStatus': isApproved ? 'Active' : 'Inactive',
-                  'trafficLight': isApproved ? "green" : "gray",
+                  'memberId': contact['id'], // ⭐ Add this ID
                 };
 
                 Navigator.push(

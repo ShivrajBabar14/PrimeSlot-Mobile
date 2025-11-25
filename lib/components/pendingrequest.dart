@@ -22,12 +22,14 @@ class _PendingRequestState extends State<PendingRequest> {
   List<Map<String, dynamic>> _pendingRequests = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String? _myMemberId;
 
   @override
   void initState() {
     super.initState();
     _fetchPendingRequests();
   }
+
 
   Future<String?> _getToken() async {
     try {
@@ -36,6 +38,39 @@ class _PendingRequestState extends State<PendingRequest> {
     } catch (e) {
       print('Error retrieving token: $e');
       return null;
+    }
+  }
+
+  Future<void> _fetchMyMemberId() async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        throw Exception('No authentication token available');
+      }
+      final response = await http.get(
+        Uri.parse('https://prime-slotnew.vercel.app/api/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('API Response for /me: $data');
+        if (data['success'] == true) {
+          String photoURL = data['member']['userProfile']['photoURL'] ?? '';
+          if (photoURL.isNotEmpty) {
+            RegExp regExp = RegExp(r'/profiles/([^/]+)/');
+            Match? match = regExp.firstMatch(photoURL);
+            if (match != null && match.groupCount >= 1) {
+              setState(() {
+                _myMemberId = match.group(1)!;
+              });
+            }
+          }
+        }
+      } else {
+        print('Failed to fetch member ID: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching member ID: $e');
     }
   }
 
@@ -49,6 +84,10 @@ class _PendingRequestState extends State<PendingRequest> {
       final token = await _getToken();
       if (token == null) {
         throw Exception('No authentication token available');
+      }
+
+      if (_myMemberId == null) {
+        await _fetchMyMemberId();
       }
 
       final response = await http.get(
@@ -67,33 +106,40 @@ class _PendingRequestState extends State<PendingRequest> {
           final processedRequests = <Map<String, dynamic>>[];
 
           for (var meeting in meetings) {
+            final aId = meeting['aId'];
             final bId = meeting['bId'];
-            if (bId != null) {
-              // Fetch member details for each bId
-              final memberDetails = await _fetchMemberDetails(bId);
-              print('Member details for $bId: $memberDetails');
-              if (memberDetails != null) {
-                // Convert scheduledAt timestamp to local time
-                final scheduledAt = meeting['scheduledAt'];
-                final dateTime = DateTime.fromMillisecondsSinceEpoch(scheduledAt * 1000);
-                final localDateTime = dateTime.toLocal();
+            if (bId != null && aId != null && _myMemberId != null) {
+              if (aId == _myMemberId) {
+                // Skip meetings where current user is aId (requester)
+                continue;
+              }
+              if (bId == _myMemberId) {
+                // Fetch member details for each aId (requester)
+                final memberDetails = await _fetchMemberDetails(aId);
+                print('Member details for $aId: $memberDetails');
+                if (memberDetails != null) {
+                  // Convert scheduledAt timestamp to local time
+                  final scheduledAt = meeting['scheduledAt'];
+                  final dateTime = DateTime.fromMillisecondsSinceEpoch(scheduledAt * 1000);
+                  final localDateTime = dateTime.toLocal();
 
-                final formattedDate = '${localDateTime.day}/${localDateTime.month}/${localDateTime.year}';
-                final hour = localDateTime.hour > 12 ? localDateTime.hour - 12 : (localDateTime.hour == 0 ? 12 : localDateTime.hour);
-                final period = localDateTime.hour >= 12 ? 'PM' : 'AM';
-                final formattedTime = '${hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')} $period';
+                  final formattedDate = '${localDateTime.day}/${localDateTime.month}/${localDateTime.year}';
+                  final hour = localDateTime.hour > 12 ? localDateTime.hour - 12 : (localDateTime.hour == 0 ? 12 : localDateTime.hour);
+                  final period = localDateTime.hour >= 12 ? 'PM' : 'AM';
+                  final formattedTime = '${hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')} $period';
 
-                processedRequests.add({
-                  'id': meeting['meetingId'],
-                  'requesterId': bId,
-                  'requesterName': memberDetails['fullName'] ?? 'Unknown User',
-                  'photoURL': memberDetails['photoURL'],
-                  'date': formattedDate,
-                  'time': formattedTime,
-                  'location': meeting['place'] ?? 'Not specified',
-                  'topic': meeting['topic'] ?? 'No topic',
-                  'status': 'pending',
-                });
+                  processedRequests.add({
+                    'id': meeting['meetingId'],
+                    'requesterId': aId,
+                    'requesterName': memberDetails['fullName'] ?? 'Unknown User',
+                    'photoURL': memberDetails['photoURL'],
+                    'date': formattedDate,
+                    'time': formattedTime,
+                    'location': meeting['place'] ?? 'Not specified',
+                    'topic': meeting['topic'] ?? 'No topic',
+                    'status': 'pending',
+                  });
+                }
               }
             }
           }

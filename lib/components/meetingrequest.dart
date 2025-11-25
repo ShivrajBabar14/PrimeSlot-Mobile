@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'bottmnav.dart';
 
 class MeetingRequest extends StatefulWidget {
   final DateTime selectedDate;
@@ -542,22 +543,27 @@ class _MeetingRequestState extends State<MeetingRequest> {
         'Meeting request API response: ${response.statusCode} - ${response.body}',
       ); // Console log the API response
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Meeting request sent successfully!",
-              style: GoogleFonts.montserrat(),
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Meeting request sent successfully!",
+                style: GoogleFonts.montserrat(),
+              ),
+              backgroundColor: Colors.green,
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
-      } else {
-        throw Exception(
-          'Failed to send meeting request: ${response.statusCode} - ${response.body}',
-        );
-      }
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BottomNav(token: token),
+            ),
+          );
+        } else {
+          throw Exception(
+            'Failed to send meeting request: ${response.statusCode} - ${response.body}',
+          );
+        }
     } catch (e) {
       print('Error sending meeting request: $e');
       ScaffoldMessenger.of(context).showSnackBar(

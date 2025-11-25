@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/profile.dart';
 
 class PendingRequest extends StatefulWidget {
   const PendingRequest({super.key});
@@ -19,6 +20,8 @@ class PendingRequest extends StatefulWidget {
 }
 
 class _PendingRequestState extends State<PendingRequest> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   List<Map<String, dynamic>> _pendingRequests = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -194,6 +197,7 @@ class _PendingRequestState extends State<PendingRequest> {
     final Color mainBlue = const Color(0xFF0052CC);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: const Color(0xFFF3F5FB),
       appBar: AppBar(
         backgroundColor: mainBlue,
@@ -389,41 +393,83 @@ class _PendingRequestState extends State<PendingRequest> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Requester Name and Photo
+                            // Requester Name and Photo with tap handler
                             Row(
                               children: [
-                                CircleAvatar(
-                                  radius: 20,
-                                  backgroundImage: request['photoURL'] != null && request['photoURL'].isNotEmpty
-                                      ? NetworkImage(request['photoURL'])
-                                      : null,
-                                  child: request['photoURL'] == null || request['photoURL'].isEmpty
-                                      ? Icon(Icons.person, color: mainBlue, size: 20)
-                                      : null,
+                                GestureDetector(
+                                  onTap: () async {
+                                    final token = await _getToken();
+                                    if (token == null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Authentication error. Please login again.')),
+                                      );
+                                      return;
+                                    }
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Profile(
+                                          scaffoldKey: _scaffoldKey,
+                                          token: token,
+                                          memberId: request['requesterId'],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage: request['photoURL'] != null && request['photoURL'].isNotEmpty
+                                        ? NetworkImage(request['photoURL'])
+                                        : null,
+                                    child: request['photoURL'] == null || request['photoURL'].isEmpty
+                                        ? Icon(Icons.person, color: mainBlue, size: 20)
+                                        : null,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        request['requesterName'],
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black87,
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      final token = await _getToken();
+                                      if (token == null) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Authentication error. Please login again.')),
+                                        );
+                                        return;
+                                      }
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Profile(
+                                            scaffoldKey: _scaffoldKey,
+                                            token: token,
+                                            memberId: request['requesterId'],
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        request['topic'] ?? 'No topic',
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.grey[700],
+                                      );
+                                    },
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          request['requesterName'],
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          request['topic'] ?? 'No topic',
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],

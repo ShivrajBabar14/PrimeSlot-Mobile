@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/profile.dart';
@@ -156,12 +157,10 @@ class _AppointmentListState extends State<AppointmentList> {
           for (var meeting in meetings) {
             final aId = meeting['aId'];
             final bId = meeting['bId'];
-            final memberIdToFetch =
-                (currentUserMemberId == aId) ? bId : aId;
+            final memberIdToFetch = (currentUserMemberId == aId) ? bId : aId;
 
             if (memberIdToFetch != null) {
-              final memberDetails =
-                  await _fetchMemberDetails(memberIdToFetch);
+              final memberDetails = await _fetchMemberDetails(memberIdToFetch);
               print('Member details for $memberIdToFetch: $memberDetails');
 
               if (memberDetails != null) {
@@ -184,8 +183,7 @@ class _AppointmentListState extends State<AppointmentList> {
                 // 🔹 endTime handling: prefer backend endTime if present
                 DateTime istEnd;
                 if (meeting['endTime'] != null) {
-                  final endMillis =
-                      _normalizeToMillis(meeting['endTime']);
+                  final endMillis = _normalizeToMillis(meeting['endTime']);
                   istEnd = _toIstFromMillis(endMillis);
                 } else {
                   final durationMin = meeting['durationMin'] ?? 30;
@@ -199,8 +197,7 @@ class _AppointmentListState extends State<AppointmentList> {
                 // 🔹 Format time (hh:mm AM/PM) in IST
                 String _formatTime(DateTime dt) {
                   final h = dt.hour;
-                  final hour12 =
-                      h > 12 ? h - 12 : (h == 0 ? 12 : h);
+                  final hour12 = h > 12 ? h - 12 : (h == 0 ? 12 : h);
                   final period = h >= 12 ? 'PM' : 'AM';
                   return '${hour12.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} $period';
                 }
@@ -312,8 +309,9 @@ class _AppointmentListState extends State<AppointmentList> {
 
     // 🔹 Filter appointments by selected IST date
     final filteredAppointments = appointments.where((appointment) {
-      final appointmentDate =
-          DateTime.parse(appointment['appointmentDate']); // IST date
+      final appointmentDate = DateTime.parse(
+        appointment['appointmentDate'],
+      ); // IST date
       return appointmentDate.year == widget.selectedDate.year &&
           appointmentDate.month == widget.selectedDate.month &&
           appointmentDate.day == widget.selectedDate.day;
@@ -323,10 +321,7 @@ class _AppointmentListState extends State<AppointmentList> {
       return Center(
         child: Text(
           'No appointments scheduled for this date.',
-          style: GoogleFonts.montserrat(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
+          style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
         ),
       );
     }
@@ -351,10 +346,8 @@ class _AppointmentListState extends State<AppointmentList> {
               itemCount: filteredAppointments.length,
               itemBuilder: (context, index) {
                 final appointment = filteredAppointments[index];
-                final timeParts =
-                    appointment['appointmentTime'].split(' - ');
-                final startTime =
-                    timeParts.isNotEmpty ? timeParts[0] : '';
+                final timeParts = appointment['appointmentTime'].split(' - ');
+                final startTime = timeParts.isNotEmpty ? timeParts[0] : '';
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -379,8 +372,7 @@ class _AppointmentListState extends State<AppointmentList> {
                     children: [
                       /// 🔹 Title & Time
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
                             child: Text(
@@ -416,14 +408,11 @@ class _AppointmentListState extends State<AppointmentList> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => Profile(
-                                      scaffoldKey:
-                                          GlobalKey<ScaffoldState>(),
+                                      scaffoldKey: GlobalKey<ScaffoldState>(),
                                       token: token,
-                                      memberId:
-                                          appointment['memberId'] != null
-                                              ? appointment['memberId']
-                                                  .toString()
-                                              : null,
+                                      memberId: appointment['memberId'] != null
+                                          ? appointment['memberId'].toString()
+                                          : null,
                                     ),
                                   ),
                                 );
@@ -433,12 +422,11 @@ class _AppointmentListState extends State<AppointmentList> {
                               radius: 16,
                               backgroundImage:
                                   appointment['photoURL'] != null &&
-                                          appointment['photoURL'].isNotEmpty
-                                      ? NetworkImage(
-                                          appointment['photoURL'],
-                                        )
-                                      : null,
-                              child: appointment['photoURL'] == null ||
+                                      appointment['photoURL'].isNotEmpty
+                                  ? NetworkImage(appointment['photoURL'])
+                                  : null,
+                              child:
+                                  appointment['photoURL'] == null ||
                                       appointment['photoURL'].isEmpty
                                   ? Icon(
                                       Icons.person,
@@ -524,20 +512,36 @@ class _AppointmentListState extends State<AppointmentList> {
     Map<String, dynamic> appointment,
   ) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (label == "Call") {
-          print("Call ${appointment['phoneNumber']}");
+          final phone = appointment['phoneNumber'];
+          final uri = Uri(scheme: 'tel', path: phone);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri);
+          } else {
+            print("Could not launch phone dialer");
+          }
         } else if (label == "Mail") {
-          print("Email ${appointment['email']}");
+          final email = appointment['email'];
+          final uri = Uri(
+            scheme: 'mailto',
+            path: email,
+            query: 'subject=Meeting Follow-Up',
+          );
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri);
+          } else {
+            print("Could not launch email");
+          }
         }
       },
+
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFE2F4FF),
           borderRadius: BorderRadius.circular(16),
         ),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Row(
           children: [
             Icon(icon, size: 14, color: Colors.black87),

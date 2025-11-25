@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../screens/profile.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DashboardMeetings extends StatefulWidget {
   final String token;
@@ -92,7 +93,6 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
       DateTime today = DateTime.now();
 
       for (var m in meetings) {
-
         // SHOW ONLY MEETINGS WHERE USER IS INVOLVED (aId OR bId)
         if (m["aId"] != currentUserId && m["bId"] != currentUserId) continue;
 
@@ -303,9 +303,9 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
 
           Row(
             children: [
-              _actionButton(Icons.call, "Call"),
+              _actionButton(Icons.call, "Call", m),
               const SizedBox(width: 12),
-              _actionButton(Icons.email_outlined, "Mail"),
+              _actionButton(Icons.email_outlined, "Mail", m),
               const Spacer(),
               Text(
                 "${m["duration"]} min",
@@ -321,26 +321,51 @@ class _DashboardMeetingsState extends State<DashboardMeetings> {
     );
   }
 
-  Widget _actionButton(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE2F4FF),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: Colors.black87),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: GoogleFonts.montserrat(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+  Widget _actionButton(IconData icon, String label, Map<String, dynamic> m) {
+    return GestureDetector(
+      onTap: () async {
+        if (label == "Call") {
+          final phone = m['phone'];
+          final uri = Uri(scheme: 'tel', path: phone);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri);
+          } else {
+            print("Could not launch phone dialer");
+          }
+        } else if (label == "Mail") {
+          final email = m['email'];
+          final uri = Uri(
+            scheme: 'mailto',
+            path: email,
+            query: 'subject=Meeting Follow-Up',
+          );
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri);
+          } else {
+            print("Could not launch email");
+          }
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE2F4FF),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: Colors.black87),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: GoogleFonts.montserrat(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

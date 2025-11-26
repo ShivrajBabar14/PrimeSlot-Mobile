@@ -19,6 +19,13 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
+  // Static variables to cache user data
+  static bool _isDataLoaded = false;
+  static String _cachedUserName = "Loading...";
+  static String _cachedUserEmail = "Loading...";
+  static String _cachedAvatarUrl = "https://randomuser.me/api/portraits/men/1.jpg";
+  static String _cachedMemberId = "";
+
   bool isLoading = true;
   String userName = "Loading...";
   String userEmail = "Loading...";
@@ -28,7 +35,18 @@ class _SidebarState extends State<Sidebar> {
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
+    if (!_isDataLoaded) {
+      _fetchUserData();
+    } else {
+      // Use cached data
+      setState(() {
+        userName = _cachedUserName;
+        userEmail = _cachedUserEmail;
+        avatarUrl = _cachedAvatarUrl;
+        memberId = _cachedMemberId;
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -60,6 +78,13 @@ class _SidebarState extends State<Sidebar> {
             print('Fetched memberId: $memberId');
             print('Full member data: ${data['member']}');
             isLoading = false;
+
+            // Cache data statically for future use
+            _cachedUserName = userName;
+            _cachedUserEmail = userEmail;
+            _cachedAvatarUrl = avatarUrl;
+            _cachedMemberId = memberId;
+            _isDataLoaded = true;
           });
         } else {
           throw Exception('Failed to fetch user data');

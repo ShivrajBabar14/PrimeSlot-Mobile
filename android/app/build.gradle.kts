@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "primeslot.com"
+    namespace = "com.example.primeslot"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

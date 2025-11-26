@@ -46,6 +46,10 @@ dependencies:
   sendotp_flutter_sdk: ^0.0.2
   mime: ^1.0.4
   shared_preferences: ^2.2.3
+  firebase_core: ^2.10.0
+  firebase_messaging: ^14.3.0
+  firebase_auth: ^4.5.0        # only if you use Firebase Auth (optional)
+  flutter_local_notifications: ^17.2.3 
 
 dev_dependencies:
   flutter_test:
